@@ -1,5 +1,6 @@
 import 'package:bimta/screens/landing_screen.dart';
 import 'package:bimta/screens/login_screen.dart';
+import 'package:bimta/screens/mahasiswa/home_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +16,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const LandingScreen(),
       routes: {
-        '/login' : (context) => LoginScreen()
+        '/login' : (context) => LoginScreen(),
+        '/home' : (context) => Homescreen()
       },
     );
   }
