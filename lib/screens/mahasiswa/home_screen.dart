@@ -104,100 +104,110 @@ class _HomescreenState extends State<Homescreen> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: Center(
-                                    child: Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Color(0xFFfff2cb),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withAlpha(25),
-                                            spreadRadius: 1,
-                                            blurRadius: 10,
-                                            offset: Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              "assets/icons/online.png",
-                                              height: 90,
-                                              width: 90,
+                                  child: GestureDetector(
+                                    onTap: (){
+                                      Navigator.pushNamed(context, '/form-online');
+                                    },
+                                    child: Center(
+                                      child: Container(
+                                        margin: const EdgeInsets.only(right: 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          color: Color(0xFFfff2cb),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withAlpha(25),
+                                              spreadRadius: 1,
+                                              blurRadius: 10,
+                                              offset: Offset(0, 4),
                                             ),
-                                            const SizedBox(height: 8),
-                                            const Text(
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: Column(
+                                            children: [
+                                              Image.asset(
+                                                "assets/icons/online.png",
+                                                height: 90,
+                                                width: 90,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              const Text(
                                                 "Bimbingan Online",
                                                 style: TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 13
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 13
                                                 ),
-                                            ),
-                                            const Text(
+                                              ),
+                                              const Text(
                                                 "Ajukan bimbingan secara virtual",
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
                                                   fontFamily: 'Poppins',
                                                   fontSize: 10,
                                                 ),
-                                            )
-                                          ],
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                  )
                                 ),
                                 Expanded(
-                                  child: Center(
-                                    child: Container(
-                                      margin: const EdgeInsets.only(left: 8),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Color(0xFFC6E2CB),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withAlpha(25),
-                                            spreadRadius: 1,
-                                            blurRadius: 10,
-                                            offset: Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          children: [
-                                            Image.asset(
-                                              "assets/icons/offline.png",
-                                              height: 90,
-                                              width: 90,
+                                  child: GestureDetector(
+                                    onTap: (){
+                                      Navigator.pushNamed(context, '/form-offline');
+                                    },
+                                    child: Center(
+                                      child: Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          color: Color(0xFFC6E2CB),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withAlpha(25),
+                                              spreadRadius: 1,
+                                              blurRadius: 10,
+                                              offset: Offset(0, 4),
                                             ),
-                                            const SizedBox(height: 8),
-                                            const Text(
+                                          ],
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: Column(
+                                            children: [
+                                              Image.asset(
+                                                "assets/icons/offline.png",
+                                                height: 90,
+                                                width: 90,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              const Text(
                                                 "Bimbingan Offline",
                                                 style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontFamily: 'Poppins',
-                                                  fontWeight: FontWeight.w600
+                                                    fontSize: 13,
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600
                                                 ),
-                                            ),
-                                            const Text(
+                                              ),
+                                              const Text(
                                                 "Ajukan pertemuan secara langsung",
                                                 textAlign: TextAlign.center,
                                                 style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontFamily: 'Poppins'
+                                                    fontSize: 10,
+                                                    fontFamily: 'Poppins'
                                                 ),
-                                            )
-                                          ],
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                  )
                                 ),
                               ],
                             ),

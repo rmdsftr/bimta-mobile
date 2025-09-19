@@ -1,4 +1,5 @@
 import 'package:bimta/layouts/bottombar_layout.dart';
+import 'package:bimta/layouts/card_jadwal.dart';
 import 'package:bimta/layouts/card_progress.dart';
 import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/widgets/background.dart';
@@ -6,95 +7,93 @@ import 'package:bimta/widgets/logo_corner.dart';
 import 'package:bimta/widgets/subnav.dart';
 import 'package:flutter/material.dart';
 
-class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({super.key});
+class JadwalScreen extends StatefulWidget {
+  const JadwalScreen({super.key});
 
   @override
-  State<ProgressScreen> createState() => _ProgressScreenState();
+  State<JadwalScreen> createState() => _JadwalScreenState();
 }
 
-class _ProgressScreenState extends State<ProgressScreen> {
+class _JadwalScreenState extends State<JadwalScreen> {
   int currentIndex = 0;
 
   final List<Map<String, String>> allProgressData = [
     {
-      'judul': 'Bimbingan Skripsi - Bab 1',
+      'subjek': 'Bimbingan Skripsi - Bab 1',
       'tanggal': '15 Sep 2024',
-      'jam': '10:30',
-      'namaFile': 'BAB1_Pendahuluan.docx',
+      'waktu': '10:30',
+      'lokasi': 'BAB1_Pendahuluan.docx',
       'pesan': 'Mohon review untuk bab pendahuluan skripsi saya. Saya sudah menambahkan latar belakang masalah dan rumusan masalah sesuai saran sebelumnya.',
-      'status': 'unread'
+      'status': 'waiting'
     },
     {
-      'judul': 'Revisi Proposal Penelitian',
+      'subjek': 'Revisi Proposal Penelitian',
       'tanggal': '14 Sep 2024',
-      'jam': '14:15',
-      'namaFile': 'Proposal_Revisi.pdf',
+      'waktu': '14:15',
+      'lokasi': 'Proposal_Revisi.pdf',
       'pesan': 'Sudah saya revisi sesuai masukan kemarin. Terutama pada bagian metodologi penelitian dan jadwal penelitian.',
-      'status': 'read'
+      'status': 'accepted'
     },
     {
-      'judul': 'Konsultasi Metodologi',
+      'subjek': 'Konsultasi Metodologi',
       'tanggal': '13 Sep 2024',
-      'jam': '09:00',
-      'namaFile': 'Metodologi_Draft.docx',
+      'waktu': '09:00',
+      'lokasi': 'Metodologi_Draft.docx',
       'pesan': 'Perlu bimbingan untuk metodologi penelitian. Masih bingung mengenai teknik sampling yang tepat untuk penelitian ini.',
-      'status': 'revisi'
+      'status': 'declined'
     },
     {
-      'judul': 'Final Draft Abstrak',
+      'subjek': 'Final Draft Abstrak',
       'tanggal': '12 Sep 2024',
-      'jam': '16:45',
-      'namaFile': 'Abstrak_Final.pdf',
+      'waktu': '16:45',
+      'lokasi': 'Abstrak_Final.pdf',
       'pesan': 'Abstrak sudah selesai dan siap untuk dipresentasikan. Terima kasih atas bimbingannya selama ini.',
-      'status': 'approved'
+      'status': 'waiting'
     },
     {
-      'judul': 'Bimbingan Skripsi - Bab 2',
+      'subjek': 'Bimbingan Skripsi - Bab 2',
       'tanggal': '11 Sep 2024',
-      'jam': '13:20',
-      'namaFile': 'BAB2_TinjauanPustaka.docx',
+      'waktu': '13:20',
+      'lokasi': 'BAB2_TinjauanPustaka.docx',
       'pesan': 'Draft bab 2 tinjauan pustaka. Saya sudah mengumpulkan 25 referensi jurnal dari tahun 2019-2024.',
-      'status': 'unread'
+      'status': 'accepted'
     },
     {
-      'judul': 'Perbaikan Daftar Pustaka',
+      'subjek': 'Perbaikan Daftar Pustaka',
       'tanggal': '10 Sep 2024',
-      'jam': '11:30',
-      'namaFile': 'DaftarPustaka_Revisi.docx',
+      'waktu': '11:30',
+      'lokasi': 'DaftarPustaka_Revisi.docx',
       'pesan': 'Sudah diperbaiki sesuai format APA yang benar. Mohon dicek kembali apakah sudah sesuai standar.',
-      'status': 'read'
+      'status': 'declined'
     },
     {
-      'judul': 'Konsultasi Analisis Data',
+      'subjek': 'Konsultasi Analisis Data',
       'tanggal': '09 Sep 2024',
-      'jam': '15:00',
-      'namaFile': 'AnalisisData_Draft.xlsx',
+      'waktu': '15:00',
+      'lokasi': 'AnalisisData_Draft.xlsx',
       'pesan': 'Butuh bimbingan untuk analisis statistik menggunakan SPSS. Data sudah terkumpul semua.',
-      'status': 'revisi'
+      'status': 'waiting'
     },
     {
-      'judul': 'Persetujuan Judul Skripsi',
+      'subjek': 'Persetujuan Judul Skripsi',
       'tanggal': '08 Sep 2024',
-      'jam': '10:00',
-      'namaFile': 'JudulSkripsi_Final.pdf',
+      'waktu': '10:00',
+      'lokasi': 'JudulSkripsi_Final.pdf',
       'pesan': 'Judul skripsi telah disetujui dan dapat dilanjutkan ke tahap penulisan proposal. Selamat!',
-      'status': 'approved'
+      'status': 'accepted'
     },
   ];
 
   String getStatusFromIndex(int index) {
     switch (index) {
       case 0:
-        return 'unread';
+        return 'waiting';
       case 1:
-        return 'read';
+        return 'accepted';
       case 2:
-        return 'revisi';
-      case 3:
-        return 'approved';
+        return 'declined';
       default:
-        return 'unread';
+        return 'waiting';
     }
   }
 
@@ -118,7 +117,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             right: 0,
             child: CustomTopbar(
               leading: const Text(
-                "Progress",
+                "Jadwal",
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontWeight: FontWeight.w600,
@@ -136,7 +135,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: Column(
                     children: [
                       Text(
-                        "Bimbingan secara online, kelola dan tambah bimbingan online Anda!",
+                        "Bimbingan secara offline, segera ajukan dan pantau bimbingan offline Anda!",
                         style: TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 13,
@@ -145,10 +144,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       SizedBox(height: 15),
                       Subnav(
                         items: [
-                          Text("Unread"),
-                          Text("Read"),
-                          Text("Revisi"),
-                          Text("Approved")
+                          Text("Waiting"),
+                          Text("Accepted"),
+                          Text("Declined"),
                         ],
                         selectedIndex: currentIndex,
                         onChanged: (index){
@@ -160,7 +158,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       SizedBox(height: 15),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushNamed(context, '/form-online');
+                          Navigator.pushNamed(context, '/form-offline');
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 12),
@@ -185,7 +183,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              "Tambah Bimbingan Online",
+                              "Tambah Bimbingan Offline",
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 color: Colors.white,
@@ -227,11 +225,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                           children: filteredData.map((data) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 15),
-                              child: CardProgress(
-                                judul: data['judul']!,
+                              child: CardJadwal(
+                                subjek: data['subjek']!,
                                 tanggal: data['tanggal']!,
-                                jam: data['jam']!,
-                                namaFile: data['namaFile']!,
+                                waktu: data['waktu']!,
+                                lokasi: data['lokasi']!,
                                 pesan: data['pesan']!,
                                 status: data['status']!,
                               ),
@@ -244,7 +242,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ),
             ),
           ),
-          const BottombarLayout(initialIndex: 1),
+          const BottombarLayout(initialIndex: 2),
         ],
       ),
     );
