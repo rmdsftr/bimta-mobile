@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen>{
                       ),
                     ),
                     SizedBox(
-                      width: double.infinity, // Row jadi full width
+                      width: double.infinity,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

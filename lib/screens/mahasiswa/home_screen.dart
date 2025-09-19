@@ -1,3 +1,6 @@
+import 'package:bimta/layouts/bottombar_layout.dart';
+import 'package:bimta/widgets/background.dart';
+import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
 import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/widgets/custom_bottombar.dart';
@@ -34,19 +37,8 @@ class _HomescreenState extends State<Homescreen> {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset(
-              "assets/images/bg-landing.png",
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: CustomTopbar(),
-          ),
+          BackgroundWidget(),
+          LogoCorner(),
           Positioned.fill(
               child: Padding(
                   padding: EdgeInsets.only(top: 100, bottom: 50),
@@ -367,40 +359,46 @@ class _HomescreenState extends State<Homescreen> {
                             Column(
                               children: [
                                 Text(
-                                    "Perlu inspirasi buat TA? cek di sini!",
+                                    "Perlu inspirasi buat TA kamu? cek di sini!",
                                     style: TextStyle(
                                       fontFamily: 'Poppins',
+                                      fontSize: 12
                                     ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 10,bottom: 25),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      gradient: LinearGradient(
-                                          colors: [
-                                            Color(0xFF677BE6),
-                                            Color(0xFF754EA6)
-                                          ]
-                                      )
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
+                                GestureDetector(
+                                  onTap: (){
+                                    Navigator.pushNamed(context, '/referensi');
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 10,bottom: 25),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(20),
+                                          gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFF677BE6),
+                                                Color(0xFF754EA6)
+                                              ]
+                                          )
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
                                             Icons.bookmarks,
-                                          color: Colors.white,
-                                        ),
-                                        SizedBox(width: 10),
-                                        Text(
+                                            color: Colors.white,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
                                             "Referensi Tugas Akhir",
                                             style: TextStyle(
-                                              color: Colors.white,
-                                              fontFamily: 'Poppins',
-                                              fontWeight: FontWeight.w600
+                                                color: Colors.white,
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w600
                                             ),
-                                        )
-                                      ],
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 )
@@ -413,12 +411,7 @@ class _HomescreenState extends State<Homescreen> {
               )
           ),
 
-          const Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: CustomBottombar(),
-          ),
+          BottombarLayout(initialIndex: 0)
         ],
       ),
     );

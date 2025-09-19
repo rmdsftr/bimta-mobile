@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:bimta/widgets/photo_corner.dart';
 
 class CustomTopbar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomTopbar({super.key});
+  final Widget leading;
+
+  const CustomTopbar({
+    Key? key,
+    required this.leading
+}) : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(100);
@@ -16,11 +21,7 @@ class CustomTopbar extends StatelessWidget implements PreferredSizeWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Image.asset(
-            "assets/images/bimta.png",
-            height: 40,
-            width: 40,
-          ),
+          leading,
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
