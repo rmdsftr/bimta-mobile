@@ -128,7 +128,7 @@ class _JadwalScreenState extends State<JadwalScreen> {
           ),
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.only(top: 100, bottom: 80),
+              padding: const EdgeInsets.only(top: 100, bottom: 65),
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(20),

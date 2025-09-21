@@ -43,7 +43,7 @@ class _FormOfflineState extends State<FormOfflineScreen>{
                   ),
                   SizedBox(width: 10),
                   Text(
-                    "Form Bimbingan Online",
+                    "Form Bimbingan Offline",
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
@@ -65,7 +65,8 @@ class _FormOfflineState extends State<FormOfflineScreen>{
                       Text(
                         "Upload progress Tugas Akhirmu dalam format pdf, dan pantau tanggapan dari dosen pembimbingmu pada menu progress",
                         style: TextStyle(
-                            fontFamily: 'Poppins'
+                            fontFamily: 'Poppins',
+                            fontSize: 13
                         ),
                       ),
                       SizedBox(height: 20),
@@ -88,7 +89,7 @@ class _FormOfflineState extends State<FormOfflineScreen>{
                             children: [
                               DateInputWidget(
                                 label: "Tanggal",
-                                hintText: "Pilih tanggal acara",
+                                hintText: "Pilih tanggal bimbingan",
                                 firstDate: DateTime.now(),
                                 lastDate: DateTime(2025),
                                 onDateSelected: (date) {

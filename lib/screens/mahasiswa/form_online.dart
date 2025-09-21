@@ -59,7 +59,8 @@ class _FormOnlineState extends State<FormOnlineScreen>{
                       Text(
                           "Upload progress Tugas Akhirmu dalam format pdf, dan pantau tanggapan dari dosen pembimbingmu pada menu progress",
                           style: TextStyle(
-                            fontFamily: 'Poppins'
+                            fontFamily: 'Poppins',
+                            fontSize: 13
                           ),
                       ),
                       SizedBox(height: 20),

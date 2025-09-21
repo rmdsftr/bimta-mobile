@@ -5,6 +5,7 @@ import 'package:bimta/screens/mahasiswa/form_online.dart';
 import 'package:bimta/screens/mahasiswa/home_screen.dart';
 import 'package:bimta/screens/mahasiswa/jadwal_screen.dart';
 import 'package:bimta/screens/mahasiswa/progress_screen.dart';
+import 'package:bimta/screens/mahasiswa/riwayat_screen.dart';
 import 'package:bimta/screens/referensi_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +28,8 @@ class MyApp extends StatelessWidget {
         '/referensi' : (context) => ReferensiTAScreen(),
         '/form-online' : (context) => FormOnlineScreen(),
         '/form-offline' : (context) => FormOfflineScreen(),
-        '/jadwal' : (context) => JadwalScreen()
+        '/jadwal' : (context) => JadwalScreen(),
+        '/riwayat' : (context) => RiwayatScreen()
       },
     );
   }
