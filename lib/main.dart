@@ -1,9 +1,12 @@
+import 'package:bimta/screens/dosen/home_screen.dart';
+import 'package:bimta/screens/dosen/mahasiswadibimbing_screen.dart';
 import 'package:bimta/screens/landing_screen.dart';
 import 'package:bimta/screens/login_screen.dart';
 import 'package:bimta/screens/mahasiswa/form_offline.dart';
 import 'package:bimta/screens/mahasiswa/form_online.dart';
 import 'package:bimta/screens/mahasiswa/home_screen.dart';
 import 'package:bimta/screens/mahasiswa/jadwal_screen.dart';
+import 'package:bimta/screens/profile_screen.dart';
 import 'package:bimta/screens/mahasiswa/progress_screen.dart';
 import 'package:bimta/screens/mahasiswa/riwayat_screen.dart';
 import 'package:bimta/screens/referensi_screen.dart';
@@ -29,7 +32,10 @@ class MyApp extends StatelessWidget {
         '/form-online' : (context) => FormOnlineScreen(),
         '/form-offline' : (context) => FormOfflineScreen(),
         '/jadwal' : (context) => JadwalScreen(),
-        '/riwayat' : (context) => RiwayatScreen()
+        '/riwayat' : (context) => RiwayatScreen(),
+        '/profil' : (context) => ProfileScreen(),
+        '/dosen/home' : (context) => Dosen_Homescreen(),
+        '/dosen/mahasiswa' : (context) => MahasiswaDibimbingScreen()
       },
     );
   }
