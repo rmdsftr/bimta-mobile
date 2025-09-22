@@ -1,3 +1,4 @@
+import 'package:bimta/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -11,6 +12,9 @@ class LoginScreen extends StatefulWidget{
 class _LoginScreenState extends State<LoginScreen>{
   bool isRememberMe = false;
   bool _obscurePassword = true;
+
+  final TextEditingController nimController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen>{
                     ),
                     SizedBox(height: 20),
                     TextFormField(
+                      controller: nimController,
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: -10),
                         hintText: "NIM/NIP",
@@ -96,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen>{
                     ),
                     SizedBox(height: 15),
                     TextFormField(
+                      controller: passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: -10),
@@ -168,7 +174,8 @@ class _LoginScreenState extends State<LoginScreen>{
                           ),
 
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                            },
                             child: const Text(
                               "Forgot Password?",
                               style: TextStyle(
@@ -195,7 +202,16 @@ class _LoginScreenState extends State<LoginScreen>{
                           ),
                         ),
                         onPressed: () {
-                          Navigator.pushNamed(context, '/home');
+                          String id = nimController.text.trim();
+                          String pw = passwordController.text.trim();
+
+                          if(id == '12345' && pw == '12345'){
+                            Navigator.pushNamed(context, '/home');
+                          } else if(id == '67890' && pw == '67890'){
+                            Navigator.pushNamed(context, '/dosen/home');
+                          } else {
+                            showCustomSnackBar(context, "NIM/NIP atau password salah");
+                          }
                         },
                         child: const Text(
                           "LOGIN",
@@ -217,4 +233,12 @@ class _LoginScreenState extends State<LoginScreen>{
       ),
     );
   }
+
+  @override
+  void dispose(){
+    nimController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 }
+
