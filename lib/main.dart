@@ -6,7 +6,7 @@ import 'package:bimta/screens/mahasiswa/form_offline.dart';
 import 'package:bimta/screens/mahasiswa/form_online.dart';
 import 'package:bimta/screens/mahasiswa/home_screen.dart';
 import 'package:bimta/screens/mahasiswa/jadwal_screen.dart';
-import 'package:bimta/screens/profile_screen.dart';
+import 'package:bimta/screens/mahasiswa/profile_screen.dart';
 import 'package:bimta/screens/mahasiswa/progress_screen.dart';
 import 'package:bimta/screens/mahasiswa/riwayat_screen.dart';
 import 'package:bimta/screens/referensi_screen.dart';

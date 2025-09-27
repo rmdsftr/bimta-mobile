@@ -1,5 +1,7 @@
 import 'package:bimta/widgets/snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'dart:math' as math;
 
 class LoginScreen extends StatefulWidget{
@@ -12,9 +14,67 @@ class LoginScreen extends StatefulWidget{
 class _LoginScreenState extends State<LoginScreen>{
   bool isRememberMe = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   final TextEditingController nimController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  static const String baseUrl = 'http://192.168.124.102:3000';
+
+  Future<void> _login() async {
+    String userId = nimController.text.trim();
+    String password = passwordController.text.trim();
+
+    if (userId.isEmpty || password.isEmpty) {
+      showCustomSnackBar(context, "NIM/NIP dan password harus diisi");
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'user_id': userId,
+          'sandi': password,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = jsonDecode(response.body);
+
+        final userData = responseData['data'];
+        final String role = userData['role'];
+        final String nama = userData['nama'];
+        final String userIdResponse = userData['user_id'];
+
+        if (role == 'mahasiswa') {
+          Navigator.pushNamed(context, '/home');
+        } else if (role == 'dosen') {
+          Navigator.pushNamed(context, '/dosen/home');
+        } else {
+          Navigator.pushNamed(context, '/home');
+        }
+      } else {
+        final errorData = jsonDecode(response.body);
+        String errorMessage = errorData['message'] ?? 'Login gagal';
+        showCustomSnackBar(context, errorMessage);
+      }
+    } catch (error) {
+      print('Login error: $error');
+      showCustomSnackBar(context, "Terjadi kesalahan. Periksa koneksi internet Anda.");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,17 +128,18 @@ class _LoginScreenState extends State<LoginScreen>{
                     ),
                     SizedBox(height: 10),
                     Text(
-                        "LOGIN",
-                        style: TextStyle(
+                      "LOGIN",
+                      style: TextStyle(
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 30,
                           color: Colors.black
-                        ),
+                      ),
                     ),
                     SizedBox(height: 20),
                     TextFormField(
                       controller: nimController,
+                      enabled: !_isLoading, // Disable saat loading
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: -10),
                         hintText: "NIM/NIP",
@@ -103,6 +164,7 @@ class _LoginScreenState extends State<LoginScreen>{
                     TextFormField(
                       controller: passwordController,
                       obscureText: _obscurePassword,
+                      enabled: !_isLoading, // Disable saat loading
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.symmetric(vertical: -10),
                         hintText: "Password",
@@ -122,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen>{
                           size: 20,
                         ),
                         suffixIcon: IconButton(
-                          onPressed: () {
+                          onPressed: _isLoading ? null : () {
                             setState(() {
                               _obscurePassword = !_obscurePassword;
                             });
@@ -148,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen>{
                             children: [
                               Checkbox(
                                 value: isRememberMe,
-                                onChanged: (value) {
+                                onChanged: _isLoading ? null : (value) {
                                   setState(() {
                                     isRememberMe = value ?? false;
                                   });
@@ -174,7 +236,8 @@ class _LoginScreenState extends State<LoginScreen>{
                           ),
 
                           TextButton(
-                            onPressed: () {
+                            onPressed: _isLoading ? null : () {
+                              // Handle forgot password
                             },
                             child: const Text(
                               "Forgot Password?",
@@ -195,25 +258,23 @@ class _LoginScreenState extends State<LoginScreen>{
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF4D81E7),
+                          backgroundColor: _isLoading ? Colors.grey : Color(0xFF4D81E7),
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {
-                          String id = nimController.text.trim();
-                          String pw = passwordController.text.trim();
-
-                          if(id == '12345' && pw == '12345'){
-                            Navigator.pushNamed(context, '/home');
-                          } else if(id == '67890' && pw == '67890'){
-                            Navigator.pushNamed(context, '/dosen/home');
-                          } else {
-                            showCustomSnackBar(context, "NIM/NIP atau password salah");
-                          }
-                        },
-                        child: const Text(
+                        onPressed: _isLoading ? null : _login,
+                        child: _isLoading
+                            ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text(
                           "LOGIN",
                           style: TextStyle(
                             fontSize: 18,
@@ -241,4 +302,3 @@ class _LoginScreenState extends State<LoginScreen>{
     super.dispose();
   }
 }
-
