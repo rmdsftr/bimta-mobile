@@ -2,6 +2,8 @@ import 'package:bimta/layouts/bottombar_layout.dart';
 import 'package:bimta/layouts/card_progress.dart';
 import 'package:bimta/layouts/card_referensi.dart';
 import 'package:bimta/layouts/custom_topbar.dart';
+import 'package:bimta/models/referensi.dart';
+import 'package:bimta/services/general/referensi.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:bimta/widgets/subnav.dart';
@@ -15,30 +17,63 @@ class ReferensiTAScreen extends StatefulWidget {
 }
 
 class _ReferensiState extends State<ReferensiTAScreen> {
+  final GeneralService _generalService = GeneralService();
+  List<ReferensiTa> allReferensi = [];
+  List<ReferensiTa> filteredReferensi = [];
+  bool isLoading = true;
+  String? errorMessage;
+  final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, String>> allReferensi = [
-    {
-      'nama' : 'Ramadhani Safitri',
-      'nim' : '2211522009',
-      'topik' : 'System Development',
-      'tahun' : '2025',
-      'judul' : 'Pembangunan Sistem Informasi Manajemen Perpustakaan'
-    },
-    {
-      'nama' : 'Ramadhani Safitri',
-      'nim' : '2211522009',
-      'topik' : 'System Development',
-      'tahun' : '2025',
-      'judul' : 'Pembangunan Sistem Informasi Manajemen Perpustakaan'
-    },
-    {
-      'nama' : 'Ramadhani Safitri',
-      'nim' : '2211522009',
-      'topik' : 'System Development',
-      'tahun' : '2025',
-      'judul' : 'Pembangunan Sistem Informasi Manajemen Perpustakaan'
+  @override
+  void initState() {
+    super.initState();
+    _loadReferensi();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReferensi() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final referensi = await _generalService.getReferensiTa();
+      setState(() {
+        allReferensi = referensi;
+        filteredReferensi = referensi;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Gagal memuat data: ${e.toString()}';
+        isLoading = false;
+      });
     }
-  ];
+  }
+
+  void _filterReferensi(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredReferensi = allReferensi;
+      });
+    } else {
+      setState(() {
+        filteredReferensi = allReferensi.where((referensi) {
+          final judulLower = referensi.judul.toLowerCase();
+          final namaLower = referensi.namaMahasiswa.toLowerCase();
+          final searchLower = query.toLowerCase();
+          return judulLower.contains(searchLower) ||
+              namaLower.contains(searchLower);
+        }).toList();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,6 +120,8 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                   child: Column(
                     children: [
                       TextField(
+                        controller: _searchController,
+                        onChanged: _filterReferensi,
                         style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
@@ -105,11 +142,11 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                           ),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none  // Hilangkan border default
+                              borderSide: BorderSide.none
                           ),
-                          enabledBorder: OutlineInputBorder(  // Border saat tidak fokus
+                          enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,  // Tidak ada border
+                            borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -120,49 +157,103 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                           ),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
-                            borderSide: BorderSide.none,  // Tidak ada border saat disabled
+                            borderSide: BorderSide.none,
                           ),
                         ),
                       ),
                       SizedBox(height: 20),
-                      if(allReferensi.isEmpty)
+
+                      // Loading State
+                      if(isLoading)
+                        Container(
+                          padding: EdgeInsets.all(40),
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF74ADDF),
+                          ),
+                        )
+
+                      // Error State
+                      else if(errorMessage != null)
                         Container(
                           padding: EdgeInsets.all(40),
                           child: Column(
                             children: [
                               Icon(
-                                Icons.inbox_outlined,
+                                Icons.error_outline,
                                 size: 60,
-                                color: Colors.grey[400],
+                                color: Colors.red[400],
                               ),
                               SizedBox(height: 10),
                               Text(
-                                "Belum ada data",
+                                errorMessage!,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'Poppins',
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: _loadReferensi,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF74ADDF),
+                                ),
+                                child: Text(
+                                  "Coba Lagi",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         )
-                      else
-                        Column(
-                          children: allReferensi.map((data) {
-                            return Padding(
-                              padding: EdgeInsets.only(bottom: 15),
-                              child: CardReferensi(
-                                  nama: data['nama']!,
-                                  nim: data['nim']!,
-                                  topik: data['topik']!,
-                                  judul: data['judul']!,
-                                  tahun: data['tahun']!
-                              ),
-                            );
-                          }).toList()
-                        )
+
+                      // Empty State
+                      else if(filteredReferensi.isEmpty)
+                          Container(
+                            padding: EdgeInsets.all(40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 60,
+                                  color: Colors.grey[400],
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  _searchController.text.isEmpty
+                                      ? "Belum ada data"
+                                      : "Tidak ada hasil pencarian",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+
+                        // Data List
+                        else
+                          Column(
+                              children: filteredReferensi.map((data) {
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: 15),
+                                  child: CardReferensi(
+                                      nama: data.namaMahasiswa,
+                                      nim: data.nimMahasiswa,
+                                      topik: data.topik,
+                                      judul: data.judul,
+                                      tahun: data.tahun.toString()
+                                  ),
+                                );
+                              }).toList()
+                          )
                     ],
                   ),
                 ),

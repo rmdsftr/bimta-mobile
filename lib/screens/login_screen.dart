@@ -1,78 +1,67 @@
-import 'package:bimta/widgets/snackbar.dart';
+import 'package:bimta/models/login.dart';
+import 'package:bimta/services/auth/login.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:math' as math;
+import '../../widgets/snackbar.dart';
 
-class LoginScreen extends StatefulWidget{
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>{
-  bool isRememberMe = false;
+class _LoginScreenState extends State<LoginScreen> {
+  bool _isRememberMe = false;
   bool _obscurePassword = true;
   bool _isLoading = false;
 
-  final TextEditingController nimController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController _nimController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  static const String baseUrl = 'http://192.168.124.102:3000';
-
-  Future<void> _login() async {
-    String userId = nimController.text.trim();
-    String password = passwordController.text.trim();
+  Future<void> _handleLogin() async {
+    final userId = _nimController.text.trim();
+    final password = _passwordController.text.trim();
 
     if (userId.isEmpty || password.isEmpty) {
       showCustomSnackBar(context, "NIM/NIP dan password harus diisi");
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'user_id': userId,
-          'sandi': password,
-        }),
+      final request = LoginRequest(
+        userId: userId,
+        password: password,
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = jsonDecode(response.body);
+      final response = await _authService.login(request);
 
-        final userData = responseData['data'];
-        final String role = userData['role'];
-        final String nama = userData['nama'];
-        final String userIdResponse = userData['user_id'];
+      if (!mounted) return;
 
-        if (role == 'mahasiswa') {
-          Navigator.pushNamed(context, '/home');
-        } else if (role == 'dosen') {
-          Navigator.pushNamed(context, '/dosen/home');
-        } else {
-          Navigator.pushNamed(context, '/home');
-        }
+      if (response.success && response.data != null) {
+        _navigateBasedOnRole(response.data!.role);
       } else {
-        final errorData = jsonDecode(response.body);
-        String errorMessage = errorData['message'] ?? 'Login gagal';
-        showCustomSnackBar(context, errorMessage);
+        showCustomSnackBar(context, response.message);
       }
-    } catch (error) {
-      print('Login error: $error');
-      showCustomSnackBar(context, "Terjadi kesalahan. Periksa koneksi internet Anda.");
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _navigateBasedOnRole(String role) {
+    switch (role.toLowerCase()) {
+      case 'mahasiswa':
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 'dosen':
+        Navigator.pushReplacementNamed(context, '/dosen/home');
+        break;
+      default:
+        Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
@@ -81,224 +70,237 @@ class _LoginScreenState extends State<LoginScreen>{
     return Scaffold(
       body: Stack(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/images/bg-login.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
+          _buildBackground(),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.white, width: 1),
-                  left: BorderSide(color: Colors.white, width: 1),
-                  right: BorderSide(color: Colors.white, width: 1),
-                  bottom: BorderSide.none,
-                ),
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Color(0xFF8DAD93),
-                    Colors.white70,
-                  ],
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(35),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Transform.rotate(
-                      angle: 0,
-                      child: Container(
-                        height: 35,
-                        width: 35,
-                        decoration: const BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage("assets/images/logo-bimta.png"),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "LOGIN",
-                      style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                          color: Colors.black
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    TextFormField(
-                      controller: nimController,
-                      enabled: !_isLoading, // Disable saat loading
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: -10),
-                        hintText: "NIM/NIP",
-                        hintStyle: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.person,
-                          color: Color(0xFF4D81E7),
-                          size: 22,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15),
-                    TextFormField(
-                      controller: passwordController,
-                      obscureText: _obscurePassword,
-                      enabled: !_isLoading, // Disable saat loading
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(vertical: -10),
-                        hintText: "Password",
-                        hintStyle: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.lock,
-                          color: Color(0xFF4D81E7),
-                          size: 20,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: _isLoading ? null : () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Color(0xFF74ADDF),
-                            size: 20,
-                          ),
-                          splashColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: isRememberMe,
-                                onChanged: _isLoading ? null : (value) {
-                                  setState(() {
-                                    isRememberMe = value ?? false;
-                                  });
-                                },
-                                side: const BorderSide(
-                                  color: Color(0xFF4D81E7),
-                                  width: 2,
-                                ),
-                                activeColor: Color(0xFF74ADDF),
-                                checkColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              const Text(
-                                "Remember me",
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          TextButton(
-                            onPressed: _isLoading ? null : () {
-                              // Handle forgot password
-                            },
-                            child: const Text(
-                              "Forgot Password?",
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF4D81E7),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isLoading ? Colors.grey : Color(0xFF4D81E7),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: _isLoading ? null : _login,
-                        child: _isLoading
-                            ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : const Text(
-                          "LOGIN",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontFamily: 'Poppins',
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          )
+            child: _buildLoginForm(),
+          ),
         ],
       ),
     );
   }
 
+  Widget _buildBackground() {
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/bg-login.png"),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginForm() {
+    return Container(
+      decoration: BoxDecoration(
+        border: const Border(
+          top: BorderSide(color: Colors.white, width: 1),
+          left: BorderSide(color: Colors.white, width: 1),
+          right: BorderSide(color: Colors.white, width: 1),
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(25),
+          topRight: Radius.circular(25),
+        ),
+        gradient: const LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [Color(0xFF8DAD93), Colors.white70],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(35),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLogo(),
+            const SizedBox(height: 10),
+            _buildTitle(),
+            const SizedBox(height: 20),
+            _buildNimField(),
+            const SizedBox(height: 15),
+            _buildPasswordField(),
+            _buildRememberAndForgot(),
+            const SizedBox(height: 10),
+            _buildLoginButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return Container(
+      height: 35,
+      width: 35,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/logo-bimta.png"),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return const Text(
+      "LOGIN",
+      style: TextStyle(
+        fontFamily: 'Poppins',
+        fontWeight: FontWeight.bold,
+        fontSize: 30,
+        color: Colors.black,
+      ),
+    );
+  }
+
+  Widget _buildNimField() {
+    return TextFormField(
+      controller: _nimController,
+      enabled: !_isLoading,
+      keyboardType: TextInputType.text,
+      textInputAction: TextInputAction.next,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+        hintText: "NIM/NIP",
+        hintStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        prefixIcon: const Icon(
+          Icons.person,
+          color: Color(0xFF4D81E7),
+          size: 22,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      enabled: !_isLoading,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) => _handleLogin(),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+        hintText: "Password",
+        hintStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        prefixIcon: const Icon(
+          Icons.lock,
+          color: Color(0xFF4D81E7),
+          size: 20,
+        ),
+        suffixIcon: IconButton(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() => _obscurePassword = !_obscurePassword),
+          icon: Icon(
+            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+            color: const Color(0xFF74ADDF),
+            size: 20,
+          ),
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRememberAndForgot() {
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Checkbox(
+                value: _isRememberMe,
+                onChanged: _isLoading
+                    ? null
+                    : (value) => setState(() => _isRememberMe = value ?? false),
+                side: const BorderSide(color: Color(0xFF4D81E7), width: 2),
+                activeColor: const Color(0xFF74ADDF),
+                checkColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              const Text(
+                "Remember me",
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 11),
+              ),
+            ],
+          ),
+          TextButton(
+            onPressed: _isLoading ? null : () {
+              // Navigate to forgot password screen
+              // Navigator.pushNamed(context, '/forgot-password');
+            },
+            child: const Text(
+              "Forgot Password?",
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF4D81E7),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _isLoading ? Colors.grey : const Color(0xFF4D81E7),
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        onPressed: _isLoading ? null : _handleLogin,
+        child: _isLoading
+            ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : const Text(
+          "LOGIN",
+          style: TextStyle(
+            fontSize: 18,
+            fontFamily: 'Poppins',
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
-  void dispose(){
-    nimController.dispose();
-    passwordController.dispose();
+  void dispose() {
+    _nimController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }

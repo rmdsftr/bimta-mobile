@@ -1,4 +1,5 @@
 import 'package:bimta/layouts/bottombar_layout.dart';
+import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,21 @@ class _HomescreenState extends State<Homescreen> {
     },
   ];
 
+  String? nama;
+
+  @override
+  void initState(){
+    super.initState();
+    loadUserData();
+  }
+
+  void loadUserData() async{
+    final userData = await TokenStorage().getUserData();
+    setState(() {
+      nama = userData['nama'];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,9 +65,17 @@ class _HomescreenState extends State<Homescreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Selamat Datang, Zaki!",
+                              "Selamat Datang,",
                               style: TextStyle(
-                                  fontSize: 25,
+                                  fontSize: 23,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600
+                              ),
+                            ),
+                            Text(
+                              nama ?? '...',
+                              style: TextStyle(
+                                  fontSize: 23,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w600
                               ),
