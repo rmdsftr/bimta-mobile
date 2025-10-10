@@ -22,7 +22,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     final userId = _nimController.text.trim();
     final password = _passwordController.text.trim();
-
     if (userId.isEmpty || password.isEmpty) {
       showCustomSnackBar(context, "NIM/NIP dan password harus diisi");
       return;
