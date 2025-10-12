@@ -25,7 +25,7 @@ class _DosenBottombarLayoutState extends State<DosenBottombarLayout> {
     switch (currentRoute) {
       case '/dosen/home':
         return 0;
-      case '/dosen/progress':
+      case '/dosen/mahasiswaprogress':
         return 1;
       case '/dosen/jadwal':
         return 2;
@@ -51,7 +51,7 @@ class _DosenBottombarLayoutState extends State<DosenBottombarLayout> {
         targetRoute = '/dosen/home';
         break;
       case 1:
-        targetRoute = '/dosen/progress';
+        targetRoute = '/dosen/mahasiswaprogress';
         break;
       case 2:
         targetRoute = '/dosen/jadwal';
