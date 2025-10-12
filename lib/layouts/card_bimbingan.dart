@@ -67,12 +67,15 @@ class CardBimbingan extends StatelessWidget{
             ],
           ),
           SizedBox(height: 10),
-          Text(
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
               judul,
               style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 12
+                fontSize: 12,
               ),
+            ),
           )
         ],
       ),

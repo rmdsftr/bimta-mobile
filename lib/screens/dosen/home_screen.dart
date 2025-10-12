@@ -1,5 +1,6 @@
 import 'package:bimta/layouts/bottombar_layout.dart';
 import 'package:bimta/layouts/dosen_bottombar_layout.dart';
+import 'package:bimta/services/bimbingan/jumlah_mahasiswa_bimbingan.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,34 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
       "tanggal": "12 Sep 2025",
     },
   ];
+
+  int jumlahMahasiswa = 0;
+  bool isLoadingJumlah = true;
+  String? errorJumlah;
+
+  @override
+  void initState() {
+    super.initState();
+    loadJumlahMahasiswa();
+  }
+
+  void loadJumlahMahasiswa() async {
+    try {
+      final service = JumlahMahasiswaDibimbingService();
+      final result = await service.getJumlahMahasiswaDibimbing();
+
+      setState(() {
+        jumlahMahasiswa = result;
+        isLoadingJumlah = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorJumlah = e.toString();
+        isLoadingJumlah = false;
+      });
+      print('Error loading jumlah mahasiswa: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,14 +130,40 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                                                 ),
                                               ),
                                               SizedBox(height: 3),
-                                              Text(
-                                                  "12",
-                                                  style: TextStyle(
+                                              isLoadingJumlah
+                                                  ? SizedBox(
+                                                height: 32,
+                                                child: Center(
+                                                  child: SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                                          Color(0xFF1AAB40)
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                                  : errorJumlah != null
+                                                  ? Text(
+                                                "-",
+                                                style: TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 25,
+                                                    color: Colors.red
+                                                ),
+                                              )
+                                                  : Text(
+                                                "$jumlahMahasiswa",
+                                                style: TextStyle(
                                                     fontFamily: 'Poppins',
                                                     fontWeight: FontWeight.w600,
                                                     fontSize: 25,
                                                     color: Color(0xFF1AAB40)
-                                                  ),
+                                                ),
                                               ),
                                               SizedBox(height: 3),
                                               const Text(
@@ -310,6 +365,60 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                               ),
                             ],
                           ),
+                          SizedBox(height: 18),
+                          GestureDetector(
+                            onTap: (){
+                              Navigator.pushNamed(context, '/dosen/kalender');
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withAlpha(25),
+                                      spreadRadius: 1,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ]
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_month,
+                                      color: Colors.deepOrangeAccent,
+                                      size: 25,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Jadwal Kegiatan",
+                                          style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600
+                                          ),
+                                        ),
+                                        Text(
+                                          "Lihat dan tambah daftar kegiatan",
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            fontSize: 12,
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

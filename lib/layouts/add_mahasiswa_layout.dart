@@ -15,15 +15,6 @@ class AddMahasiswaLayout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Cari Mahasiswa Bimbingan",
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 20),
-
           TextField(
             style: TextStyle(
                 fontFamily: 'Poppins',
@@ -31,7 +22,7 @@ class AddMahasiswaLayout extends StatelessWidget {
                 color: Colors.black
             ),
             decoration: InputDecoration(
-              hintText: "Cari berdasarkan judul atau nama",
+              hintText: "Cari nim atau nama",
               hintStyle: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 13,
@@ -45,11 +36,11 @@ class AddMahasiswaLayout extends StatelessWidget {
               ),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none  // Hilangkan border default
+                  borderSide: BorderSide.none
               ),
-              enabledBorder: OutlineInputBorder(  // Border saat tidak fokus
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,  // Tidak ada border
+                borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -60,42 +51,12 @@ class AddMahasiswaLayout extends StatelessWidget {
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,  // Tidak ada border saat disabled
+                borderSide: BorderSide.none,
               ),
             ),
           ),
+          SizedBox(height: 10),
           child,
-          GestureDetector(
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF677BE6),
-                    Color(0xFF754EA6)
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Tambahkan Mahasiswa",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Poppins',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
         ],
       ),
     );
