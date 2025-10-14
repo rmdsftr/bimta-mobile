@@ -6,6 +6,7 @@ import 'package:bimta/layouts/dosen_bottombar_layout.dart';
 import 'package:bimta/layouts/listMahasiswa.dart';
 import 'package:bimta/models/mahasiswa.dart';
 import 'package:bimta/models/mahasiswa_dibimbing.dart';
+import 'package:bimta/screens/dosen/view_profil_mahasiswa.dart';
 import 'package:bimta/services/bimbingan/addMahasiswaBimbingan.dart';
 import 'package:bimta/services/bimbingan/mahasiswaDibimbing.dart';
 import 'package:bimta/services/general/mahasiswa.dart';
@@ -664,22 +665,26 @@ class _MahasiswaDibimbingState extends State<MahasiswaDibimbingScreen> {
                             ),
                           )
                         else
-                          GestureDetector(
-                            onTap: (){
-                              Navigator.pushNamed(context, '/dosen/viewProfile');
-                            },
-                            child: Column(
-                              children: filteredData.map((data) {
-                                return Padding(
+                          Column(
+                            children: filteredData.map((data) {
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/dosen/viewProfile',
+                                    arguments: data.userId,
+                                  );
+                                },
+                                child: Padding(
                                   padding: const EdgeInsets.only(bottom: 15),
                                   child: CardBimbingan(
                                     nama: data.nama,
                                     nim: data.userId,
                                     judul: data.judul ?? 'Judul belum ditentukan',
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                ),
+                              );
+                            }).toList(),
                           )
                       ],
                     ),

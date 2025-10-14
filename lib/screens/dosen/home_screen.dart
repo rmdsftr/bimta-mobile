@@ -1,6 +1,7 @@
 import 'package:bimta/layouts/bottombar_layout.dart';
 import 'package:bimta/layouts/dosen_bottombar_layout.dart';
 import 'package:bimta/services/bimbingan/jumlah_mahasiswa_bimbingan.dart';
+import 'package:bimta/services/bimbingan/jumlah_pending_review.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
@@ -34,13 +35,17 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
   ];
 
   int jumlahMahasiswa = 0;
+  int jumlahPending = 0;
   bool isLoadingJumlah = true;
   String? errorJumlah;
+  bool isLoadingPending = true;
+  String? errorPending;
 
   @override
   void initState() {
     super.initState();
     loadJumlahMahasiswa();
+    loadJumlahPending();
   }
 
   void loadJumlahMahasiswa() async {
@@ -58,6 +63,24 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
         isLoadingJumlah = false;
       });
       print('Error loading jumlah mahasiswa: $e');
+    }
+  }
+
+  void loadJumlahPending() async {
+    try {
+      final service = JumlahPendingReviewService();
+      final result = await service.getJumlahPendingReview();
+
+      setState(() {
+        jumlahPending = result;
+        isLoadingPending = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorPending = e.toString();
+        isLoadingPending = false;
+      });
+      print('Error loading jumlah pending: $e');
     }
   }
 
@@ -215,8 +238,34 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                                                 ),
                                               ),
                                               SizedBox(height: 3),
+                                              isLoadingPending
+                                                  ? SizedBox(
+                                                height: 32,
+                                                child: Center(
+                                                  child: SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                                          Color(0xFF1AAB40)
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                                : errorPending != null
+                                                  ? Text(
+                                                "-",
+                                                style: TextStyle(
+                                                    fontFamily: 'Poppins',
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 25,
+                                                    color: Colors.red
+                                                ),
+                                              ) :
                                               Text(
-                                                "5",
+                                                "${jumlahPending}",
                                                 style: TextStyle(
                                                     fontFamily: 'Poppins',
                                                     fontWeight: FontWeight.w600,
@@ -260,7 +309,7 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                               Expanded(
                                   child: GestureDetector(
                                     onTap: (){
-                                      Navigator.pushNamed(context, '/form-online');
+                                      Navigator.pushNamed(context, '/dosen/mahasiswaprogress');
                                     },
                                     child: Center(
                                       child: Container(

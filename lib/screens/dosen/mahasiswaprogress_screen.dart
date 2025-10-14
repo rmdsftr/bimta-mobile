@@ -1,8 +1,9 @@
 import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/layouts/dosen_bottombar_layout.dart';
+import 'package:bimta/models/bimbingan_online_dosen.dart';
+import 'package:bimta/services/progress/bimbingan_online_dosen.dart';
 import 'package:flutter/material.dart';
 import 'package:bimta/layouts/card_bimbingan_online.dart';
-import 'package:bimta/widgets/action_buttons.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/subnav.dart';
 
@@ -15,6 +16,37 @@ class MahasiswaProgressScreen extends StatefulWidget {
 
 class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
   int selectedIndex = 0;
+  final ProgressOnlineService _progressService = ProgressOnlineService();
+
+  List<ProgressOnlineModel> allProgressList = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgressData();
+  }
+
+  Future<void> _loadProgressData() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final data = await _progressService.getProgressOnlineMahasiswa();
+      setState(() {
+        allProgressList = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   String getStatusFromIndex(int index) {
     switch (index) {
@@ -29,58 +61,10 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
     }
   }
 
-  final List<Map<String, String>> listProgressMahasiswa = [
-    {
-      'nama': 'Muhammad Zaki',
-      'nim': '2211523031',
-      'judul':
-      'Implementasi Machine Learning untuk Prediksi Harga Saham menggunakan Algoritma LSTM',
-      'pesan':
-      'Mohon direview Bab 2: tinjauan pustaka dan algoritma LSTM yang saya pakai.',
-      'status': 'unread'
-    },
-    {
-      'nama': 'Tegar Ananda',
-      'nim': '2211523011',
-      'judul':
-      'Implementasi Machine Learning untuk Prediksi Harga Saham menggunakan Algoritma LSTM',
-      'pesan':
-      'Terima kasih atas masukannya, sudah saya terapkan. Mohon konfirmasi akhir apakah bisa lanjut ke Bab 4.',
-      'status': 'approved'
-    },
-    {
-      'nama': 'Talitha Zulfa Amira',
-      'nim': '2211522023',
-      'judul':
-      'Implementasi Machine Learning untuk Prediksi Harga Saham menggunakan Algoritma LSTM',
-      'pesan':
-      'Saya masih kebingungan pada bagian preprocessing data. Bisa dibantu contoh scaling yang tepat?',
-      'status': 'revisi'
-    },
-    {
-      'nama': 'Ramadhani Safitri',
-      'nim': '2211522009',
-      'judul':
-      'Implementasi Machine Learning untuk Prediksi Harga Saham menggunakan Algoritma LSTM',
-      'pesan':
-      'Sudah saya perbaiki format referensi sesuai APA dan menambahkan 5 jurnal terbaru.',
-      'status': 'approved'
-    },
-    {
-      'nama': 'Ari Raihan Dafa',
-      'nim': '2211523011',
-      'judul':
-      'Implementasi Machine Learning untuk Prediksi Harga Saham menggunakan Algoritma LSTM',
-      'pesan':
-      'File draft Bab 3 saya lampirkan, mohon cek bagian metodologi dan jadwal penelitian.',
-      'status': 'revisi'
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final filteredList = listProgressMahasiswa
-        .where((mhs) => mhs['status'] == getStatusFromIndex(selectedIndex))
+    final filteredList = allProgressList
+        .where((progress) => progress.status == getStatusFromIndex(selectedIndex))
         .toList();
 
     return Scaffold(
@@ -108,82 +92,130 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.only(top: 100, bottom: 80),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Pantau dan kelola bimbingan online mahasiswa Anda di sini!",
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-
-
-                      Subnav(
-                        items: const [
-                          Text("Unread"),
-                          Text("Revisi"),
-                          Text("Approved"),
-                        ],
-                        selectedIndex: selectedIndex,
-                        onChanged: (index) {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      if (filteredList.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(40),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.inbox_outlined,
-                                size: 60,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "Belum ada data bimbingan",
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+              child: RefreshIndicator(
+                onRefresh: _loadProgressData,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Pantau dan kelola bimbingan online mahasiswa Anda di sini!",
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
                           ),
-                        )
-                      else
-                        Column(
-                          children: filteredList.map((mhs) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 15),
+                        ),
+                        const SizedBox(height: 15),
+
+                        Subnav(
+                          items: const [
+                            Text("Unread"),
+                            Text("Revisi"),
+                            Text("Approved"),
+                          ],
+                          selectedIndex: selectedIndex,
+                          onChanged: (index) {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        if (isLoading)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else if (errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.all(40),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 60,
+                                  color: Colors.red[400],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Terjadi kesalahan",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  errorMessage!,
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 15),
+                                ElevatedButton(
+                                  onPressed: _loadProgressData,
+                                  child: const Text('Coba Lagi'),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (filteredList.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(40),
                               child: Column(
                                 children: [
-                                  CardBimbinganOnline(
-                                    nama: mhs['nama']!,
-                                    nim: mhs['nim']!,
-                                    judul: mhs['judul']!,
-                                    pesan: mhs['pesan']!,
-                                    namaFile: 'BAB3_${mhs['nim']!}.pdf',
-                                    status: mhs['status']!,
+                                  Icon(
+                                    Icons.inbox_outlined,
+                                    size: 60,
+                                    color: Colors.grey[400],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    "Belum ada data bimbingan",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ],
                               ),
-                            );
-                          }).toList(),
-                        ),
-                    ],
+                            )
+                          else
+                            Column(
+                              children: filteredList.map((progress) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  child: Column(
+                                    children: [
+                                      CardBimbinganOnline(
+                                        nama: progress.nama,
+                                        nim: progress.nim,
+                                        judul: progress.judul,
+                                        pesan: progress.pesan,
+                                        namaFile: progress.fileName,
+                                        status: progress.status,
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                      ],
+                    ),
                   ),
                 ),
               ),

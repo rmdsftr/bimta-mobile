@@ -172,14 +172,6 @@ class CardBimbinganOnline extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Text(
-                  '2 jam lalu',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 10,
-                    color: Colors.grey,
-                  ),
-                ),
               ],
             ),
           ),
