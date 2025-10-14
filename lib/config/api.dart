@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String _devBaseUrl = 'http://192.168.100.106:3000';
+  static const String _devBaseUrl = 'http://10.44.10.115:3000';
   static const String _prodBaseUrl = 'https://your-production-url.com';
 
   static const bool _isDevelopment = true;
