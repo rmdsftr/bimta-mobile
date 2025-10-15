@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/services/auth/logout.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:bimta/layouts/card_profile.dart';
+import 'package:bimta/layouts/card_profileInformation.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -15,8 +18,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? nama;
   String? role;
+  File? _selectedImage;
+
   final LogoutService _logoutService = LogoutService();
   bool _isLoggingOut = false;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -32,6 +39,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await showModalBottomSheet<XFile?>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () async {
+                  Navigator.pop(
+                    context,
+                    await _picker.pickImage(source: ImageSource.gallery),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () async {
+                  Navigator.pop(
+                    context,
+                    await _picker.pickImage(source: ImageSource.camera),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Foto profil berhasil diubah.",
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+        ),
+      );
+    }
+  }
+
   Future<void> _handleLogout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -42,8 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 17,
-                fontWeight: FontWeight.w600
-            ),
+                fontWeight: FontWeight.w600),
           ),
           content: const Text(
             'Apakah Anda yakin ingin keluar?',
@@ -54,10 +109,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text(
                 'Batal',
-                style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600
-                ),
+                style:
+                TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
               ),
             ),
             TextButton(
@@ -151,32 +204,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               CircleAvatar(
                                 radius: 80,
                                 backgroundColor: Colors.white,
-                                child: const CircleAvatar(
+                                child: CircleAvatar(
                                   radius: 77,
-                                  backgroundImage:
-                                  AssetImage("assets/images/avatar.png"),
+                                  backgroundImage: _selectedImage != null
+                                      ? FileImage(_selectedImage!)
+                                      : const AssetImage(
+                                      "assets/images/avatar.png")
+                                  as ImageProvider,
                                 ),
                               ),
                               Positioned(
                                 bottom: 4,
                                 right: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.15),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt,
-                                    size: 22,
-                                    color: Colors.black54,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt,
+                                      size: 22,
+                                      color: Colors.black54,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -203,8 +262,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                       const SizedBox(height: 30),
-                      const ProfileCard(),
 
+                      if (role != null) ProfileInformationCard(role: role!),
+                      const SizedBox(height: 30),
+
+                      const ProfileCard(),
                       const SizedBox(height: 30),
                     ],
                   ),
@@ -240,7 +302,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       strokeWidth: 2,
                     ),
                   )
-                      : const Icon(Icons.logout, color: Colors.white, size: 22),
+                      : const Icon(Icons.logout,
+                      color: Colors.white, size: 22),
                   label: Text(
                     _isLoggingOut ? "Logging Out..." : "Logout",
                     style: const TextStyle(
@@ -257,7 +320,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
-                    disabledBackgroundColor: const Color(0xFFE74C3C).withOpacity(0.6),
+                    disabledBackgroundColor:
+                    const Color(0xFFE74C3C).withOpacity(0.6),
                   ),
                 ),
               ),
