@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/services/auth/logout.dart';
 import 'package:bimta/services/profile/ganti_foto.dart';
+import 'package:bimta/widgets/photo_corner.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bimta/widgets/background.dart';
@@ -21,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? role;
   String? photoUrl;
   File? _selectedImage;
+  final GlobalKey<PhotoCornerState> _photoCornerKey = GlobalKey<PhotoCornerState>();
 
   final LogoutService _logoutService = LogoutService();
   final ProfilePhotoService _profilePhotoService = ProfilePhotoService();
@@ -82,7 +85,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isUploadingPhoto = true;
       });
 
-      // Upload foto ke backend
       final response = await _profilePhotoService.changePhoto(_selectedImage!);
 
       if (!mounted) return;
@@ -96,6 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           photoUrl = response.photoUrl;
         });
 
+        _photoCornerKey.currentState?.refreshPhoto();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -106,7 +110,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       } else {
-        // Rollback jika gagal
         setState(() {
           _selectedImage = null;
         });
@@ -231,8 +234,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Stack(
         children: [
           const BackgroundWidget(),
-          const LogoCorner(),
-
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.only(top: 100, bottom: 100),
@@ -247,12 +248,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              CircleAvatar(
-                                radius: 80,
-                                backgroundColor: Colors.white,
-                                child: CircleAvatar(
-                                  radius: 77,
-                                  backgroundImage: _getProfileImage(),
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: _selectedImage != null
+                                    ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Image.file(
+                                    _selectedImage!,
+                                    width: 160,
+                                    height: 160,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                                    : PhotoCorner(
+                                  key: _photoCornerKey,
+                                  height: 160,
+                                  width: 160,
                                 ),
                               ),
                               Positioned(
