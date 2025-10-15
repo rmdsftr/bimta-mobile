@@ -16,8 +16,11 @@ import 'package:bimta/screens/mahasiswa/riwayat_screen.dart';
 import 'package:bimta/screens/profile_screen.dart';
 import 'package:bimta/screens/referensi_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
 

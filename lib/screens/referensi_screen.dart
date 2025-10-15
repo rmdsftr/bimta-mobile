@@ -1,13 +1,15 @@
 import 'package:bimta/layouts/bottombar_layout.dart';
-import 'package:bimta/layouts/card_progress.dart';
 import 'package:bimta/layouts/card_referensi.dart';
 import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/models/referensi.dart';
+import 'package:bimta/screens/preview_pdf.dart';
 import 'package:bimta/services/general/referensi.dart';
 import 'package:bimta/widgets/background.dart';
-import 'package:bimta/widgets/logo_corner.dart';
-import 'package:bimta/widgets/subnav.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ReferensiTAScreen extends StatefulWidget {
   const ReferensiTAScreen({super.key});
@@ -75,6 +77,143 @@ class _ReferensiState extends State<ReferensiTAScreen> {
     }
   }
 
+  void _openPdfPreview(ReferensiTa referensi) {
+    if (referensi.docUrl == null || referensi.docUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Dokumen tidak tersedia',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PdfPreviewScreen(
+          fileUrl: referensi.docUrl!,
+          fileName: '${referensi.judul}.pdf',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadPdf(ReferensiTa referensi) async {
+    if (referensi.docUrl == null || referensi.docUrl!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Dokumen tidak tersedia',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Request storage permission
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Izin penyimpanan diperlukan untuk download',
+              style: TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: Color(0xFF74ADDF)),
+              SizedBox(width: 20),
+              Text(
+                'Mengunduh...',
+                style: TextStyle(fontFamily: 'Poppins'),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      // Download file
+      final response = await http.get(Uri.parse(referensi.docUrl!));
+
+      if (response.statusCode == 200) {
+        // Get Downloads directory
+        Directory? directory;
+        if (Platform.isAndroid) {
+          directory = Directory('/storage/emulated/0/Download');
+          if (!await directory.exists()) {
+            directory = await getExternalStorageDirectory();
+          }
+        } else {
+          directory = await getApplicationDocumentsDirectory();
+        }
+
+        // Create file name
+        final fileName = '${referensi.judul}_${referensi.tahun}.pdf';
+        final filePath = '${directory!.path}/$fileName';
+        final file = File(filePath);
+
+        // Write file
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Close loading dialog
+        Navigator.pop(context);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'File berhasil diunduh ke: ${directory.path}',
+              style: TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      } else {
+        Navigator.pop(context);
+        throw Exception('Gagal mengunduh file');
+      }
+    } catch (e) {
+      // Close loading dialog if open
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Gagal mengunduh: ${e.toString()}',
+            style: TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,16 +229,16 @@ class _ReferensiState extends State<ReferensiTAScreen> {
               leading: Row(
                 children: [
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Navigator.pop(context);
                     },
-                    child: Icon(
+                    child: const Icon(
                       Icons.arrow_back_ios_new,
                       size: 18,
                     ),
                   ),
-                  SizedBox(width: 10),
-                  Text(
+                  const SizedBox(width: 10),
+                  const Text(
                     "Referensi Tugas Akhir",
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -122,27 +261,27 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                       TextField(
                         controller: _searchController,
                         onChanged: _filterReferensi,
-                        style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 13,
-                            color: Colors.black
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          color: Colors.black,
                         ),
                         decoration: InputDecoration(
                           hintText: "Cari berdasarkan judul atau nama",
-                          hintStyle: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 13,
-                              color: Colors.black38
+                          hintStyle: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.black38,
                           ),
                           filled: true,
                           fillColor: Colors.white,
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.search,
                             color: Colors.black38,
                           ),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -161,21 +300,21 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Loading State
-                      if(isLoading)
+                      if (isLoading)
                         Container(
-                          padding: EdgeInsets.all(40),
-                          child: CircularProgressIndicator(
+                          padding: const EdgeInsets.all(40),
+                          child: const CircularProgressIndicator(
                             color: Color(0xFF74ADDF),
                           ),
                         )
 
                       // Error State
-                      else if(errorMessage != null)
+                      else if (errorMessage != null)
                         Container(
-                          padding: EdgeInsets.all(40),
+                          padding: const EdgeInsets.all(40),
                           child: Column(
                             children: [
                               Icon(
@@ -183,7 +322,7 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                                 size: 60,
                                 color: Colors.red[400],
                               ),
-                              SizedBox(height: 10),
+                              const SizedBox(height: 10),
                               Text(
                                 errorMessage!,
                                 textAlign: TextAlign.center,
@@ -193,13 +332,13 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                                   color: Colors.grey[600],
                                 ),
                               ),
-                              SizedBox(height: 20),
+                              const SizedBox(height: 20),
                               ElevatedButton(
                                 onPressed: _loadReferensi,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF74ADDF),
+                                  backgroundColor: const Color(0xFF74ADDF),
                                 ),
-                                child: Text(
+                                child: const Text(
                                   "Coba Lagi",
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
@@ -212,9 +351,9 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                         )
 
                       // Empty State
-                      else if(filteredReferensi.isEmpty)
+                      else if (filteredReferensi.isEmpty)
                           Container(
-                            padding: EdgeInsets.all(40),
+                            padding: const EdgeInsets.all(40),
                             child: Column(
                               children: [
                                 Icon(
@@ -222,7 +361,7 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                                   size: 60,
                                   color: Colors.grey[400],
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Text(
                                   _searchController.text.isEmpty
                                       ? "Belum ada data"
@@ -241,18 +380,21 @@ class _ReferensiState extends State<ReferensiTAScreen> {
                         // Data List
                         else
                           Column(
-                              children: filteredReferensi.map((data) {
-                                return Padding(
-                                  padding: EdgeInsets.only(bottom: 15),
-                                  child: CardReferensi(
-                                      nama: data.namaMahasiswa,
-                                      nim: data.nimMahasiswa,
-                                      topik: data.topik,
-                                      judul: data.judul,
-                                      tahun: data.tahun.toString()
-                                  ),
-                                );
-                              }).toList()
+                            children: filteredReferensi.map((data) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 15),
+                                child: CardReferensi(
+                                  nama: data.namaMahasiswa,
+                                  nim: data.nimMahasiswa,
+                                  topik: data.topik,
+                                  judul: data.judul,
+                                  tahun: data.tahun.toString(),
+                                  docUrl: data.docUrl,
+                                  onPreview: () => _openPdfPreview(data),
+                                  onDownload: () => _downloadPdf(data),
+                                ),
+                              );
+                            }).toList(),
                           )
                     ],
                   ),

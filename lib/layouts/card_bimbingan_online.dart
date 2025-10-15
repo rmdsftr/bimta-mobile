@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
-import 'package:bimta/widgets/action_buttons.dart'; // pastikan impor ini sesuai path kamu
+import 'package:bimta/widgets/action_buttons.dart';
 
 class CardBimbinganOnline extends StatelessWidget {
   final String nama;
@@ -9,6 +9,9 @@ class CardBimbinganOnline extends StatelessWidget {
   final String pesan;
   final String namaFile;
   final String status;
+  final String fileUrl; // Tambahkan parameter ini
+  final VoidCallback? onPreview; // Tambahkan callback untuk preview
+  final VoidCallback? onCorrection; // Tambahkan callback untuk correction
 
   const CardBimbinganOnline({
     super.key,
@@ -18,6 +21,9 @@ class CardBimbinganOnline extends StatelessWidget {
     required this.pesan,
     required this.namaFile,
     required this.status,
+    required this.fileUrl,
+    this.onPreview,
+    this.onCorrection,
   });
 
   @override
@@ -52,7 +58,6 @@ class CardBimbinganOnline extends StatelessWidget {
           return 'Unknown';
       }
     }
-    int selectedIndex = -1;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -181,7 +186,13 @@ class CardBimbinganOnline extends StatelessWidget {
           if (status != 'approved')
             ActionButtons(
               selectedIndex: -1,
-              onChanged: (index) {},
+              onChanged: (index) {
+                if (index == 0 && onPreview != null) {
+                  onPreview!();
+                } else if (index == 1 && onCorrection != null) {
+                  onCorrection!();
+                }
+              },
               items: const [
                 Text("Preview"),
                 Text("Correction"),

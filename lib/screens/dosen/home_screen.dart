@@ -1,12 +1,13 @@
-import 'package:bimta/layouts/bottombar_layout.dart';
 import 'package:bimta/layouts/dosen_bottombar_layout.dart';
+import 'package:bimta/models/aktivitas_terkini_dosen.dart';
 import 'package:bimta/services/bimbingan/jumlah_mahasiswa_bimbingan.dart';
 import 'package:bimta/services/bimbingan/jumlah_pending_review.dart';
+import 'package:bimta/services/general/aktivitas_terkini_dosen.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
-import 'package:bimta/layouts/custom_topbar.dart';
-import 'package:bimta/widgets/custom_bottombar.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class Dosen_Homescreen extends StatefulWidget {
   const Dosen_Homescreen({Key? key}) : super(key: key);
@@ -16,24 +17,6 @@ class Dosen_Homescreen extends StatefulWidget {
 }
 
 class _DosenHomescreenState extends State<Dosen_Homescreen> {
-  final List<Map<String, dynamic>> data = [
-    {
-      "icon": Icons.school,
-      "nama": "Bimbingan TA",
-      "tanggal": "17 Sep 2025",
-    },
-    {
-      "icon": Icons.book,
-      "nama": "Review Proposal",
-      "tanggal": "15 Sep 2025",
-    },
-    {
-      "icon": Icons.check_circle,
-      "nama": "ACC Bab 1",
-      "tanggal": "12 Sep 2025",
-    },
-  ];
-
   int jumlahMahasiswa = 0;
   int jumlahPending = 0;
   bool isLoadingJumlah = true;
@@ -41,11 +24,16 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
   bool isLoadingPending = true;
   String? errorPending;
 
+  List<AktivitasTerkini> aktivitasList = [];
+  bool isLoadingAktivitas = true;
+  String? errorAktivitas;
+
   @override
   void initState() {
     super.initState();
     loadJumlahMahasiswa();
     loadJumlahPending();
+    loadAktivitasTerkini();
   }
 
   void loadJumlahMahasiswa() async {
@@ -82,6 +70,55 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
       });
       print('Error loading jumlah pending: $e');
     }
+  }
+
+  void loadAktivitasTerkini() async {
+    try {
+      final service = AktivitasTerkiniService();
+      final result = await service.getAktivitasTerkini();
+
+      setState(() {
+        aktivitasList = result;
+        isLoadingAktivitas = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorAktivitas = e.toString();
+        isLoadingAktivitas = false;
+      });
+      print('Error loading aktivitas terkini: $e');
+    }
+  }
+
+  IconData getIconByType(String iconType) {
+    switch (iconType.toLowerCase()) {
+      case 'progress':
+        return Icons.assignment_turned_in;
+      case 'jadwal':
+        return Icons.calendar_today;
+      default:
+        return Icons.circle_notifications;
+    }
+  }
+
+  Color getIconColorByType(String iconType) {
+    switch (iconType.toLowerCase()) {
+      case 'progress':
+        return Colors.green;
+      case 'jadwal':
+        return Colors.orange;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  String formatTanggal(DateTime tanggal) {
+    final months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+    ];
+
+    return '${tanggal.day} ${months[tanggal.month]} ${tanggal.year}';
   }
 
   @override
@@ -254,7 +291,7 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                                                   ),
                                                 ),
                                               )
-                                                : errorPending != null
+                                                  : errorPending != null
                                                   ? Text(
                                                 "-",
                                                 style: TextStyle(
@@ -476,7 +513,7 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                               Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 15),
                                 child: Text(
-                                  "Aktivitas Terkini (${data.length})",
+                                  "Aktivitas Terkini (${isLoadingAktivitas ? '...' : aktivitasList.length})",
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontFamily: 'Poppins',
@@ -486,137 +523,210 @@ class _DosenHomescreenState extends State<Dosen_Homescreen> {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                padding: const EdgeInsets.symmetric(horizontal: 5),
-                                itemCount: data.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final item = data[index];
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withAlpha(20),
-                                          spreadRadius: 0,
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                      border: Border.all(
-                                        color: Color(0x7674ADDF),
-                                        width: 1,
+
+                              if (isLoadingAktivitas)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF1AAB40)
                                       ),
                                     ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: InkWell(
+                                  ),
+                                ),
+
+                              if (!isLoadingAktivitas && errorAktivitas != null)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          size: 48,
+                                          color: Colors.red,
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          'Gagal memuat aktivitas',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                        SizedBox(height: 10),
+                                        ElevatedButton(
+                                          onPressed: loadAktivitasTerkini,
+                                          child: Text('Coba Lagi'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                              if (!isLoadingAktivitas && errorAktivitas == null && aktivitasList.isEmpty)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.inbox_outlined,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          'Belum ada aktivitas',
+                                          style: TextStyle(
+                                            fontFamily: 'Poppins',
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                              if (!isLoadingAktivitas && errorAktivitas == null && aktivitasList.isNotEmpty)
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                                  itemCount: aktivitasList.length,
+                                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                  itemBuilder: (context, index) {
+                                    final item = aktivitasList[index];
+                                    final iconData = getIconByType(item.icon);
+                                    final iconColor = getIconColorByType(item.icon);
+
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
                                         borderRadius: BorderRadius.circular(16),
-                                        onTap: () {
-                                          // Handle tap action
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                height: 40,
-                                                width: 40,
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    colors: [
-                                                      Colors.blue.shade400,
-                                                      Colors.blue.shade600,
-                                                    ],
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.blue.withOpacity(0.3),
-                                                      spreadRadius: 0,
-                                                      blurRadius: 8,
-                                                      offset: const Offset(0, 2),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(20),
+                                            spreadRadius: 0,
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                        border: Border.all(
+                                          color: Color(0x7674ADDF),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(16),
+                                          onTap: () {
+                                            if (item.progressId != null) {
+                                              print('Navigate to progress: ${item.progressId}');
+                                            } else if (item.bimbinganId != null) {
+                                              print('Navigate to jadwal: ${item.bimbinganId}');
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  height: 40,
+                                                  width: 40,
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      colors: [
+                                                        iconColor.withOpacity(0.8),
+                                                        iconColor,
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end: Alignment.bottomRight,
                                                     ),
-                                                  ],
-                                                ),
-                                                child: Icon(
-                                                  item['icon'],
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-
-                                              const SizedBox(width: 10),
-
-                                              // Content
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      item['nama'],
-                                                      style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontFamily: 'Poppins',
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.black87,
+                                                    borderRadius: BorderRadius.circular(12),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: iconColor.withOpacity(0.3),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 2),
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Row(
-                                                      children: [
-                                                        Icon(
-                                                          Icons.access_time_rounded,
-                                                          size: 10,
-                                                          color: Colors.grey.shade600,
+                                                    ],
+                                                  ),
+                                                  child: Icon(
+                                                    iconData,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                ),
+
+                                                const SizedBox(width: 10),
+
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        item.nama,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontFamily: 'Poppins',
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.black87,
                                                         ),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          item['tanggal'],
-                                                          style: TextStyle(
-                                                            fontSize: 12,
-                                                            fontFamily: 'Poppins',
-                                                            fontWeight: FontWeight.w400,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons.access_time_rounded,
+                                                            size: 10,
                                                             color: Colors.grey.shade600,
                                                           ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-                                              Container(
-                                                height: 32,
-                                                width: 32,
-                                                decoration: BoxDecoration(
-                                                  color: Colors.grey.shade50,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade200,
-                                                    width: 1,
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            formatTanggal(item.tanggal),
+                                                            style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontFamily: 'Poppins',
+                                                              fontWeight: FontWeight.w400,
+                                                              color: Colors.grey.shade600,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
-                                                child: Icon(
-                                                  Icons.arrow_forward_ios_rounded,
-                                                  size: 14,
-                                                  color: Colors.grey.shade600,
+
+                                                Container(
+                                                  height: 32,
+                                                  width: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade50,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(
+                                                      color: Colors.grey.shade200,
+                                                      width: 1,
+                                                    ),
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.arrow_forward_ios_rounded,
+                                                    size: 14,
+                                                    color: Colors.grey.shade600,
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                    );
+                                  },
+                                ),
                               const SizedBox(height: 30),
                             ],
                           ),

@@ -1,6 +1,7 @@
 import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/layouts/dosen_bottombar_layout.dart';
 import 'package:bimta/models/bimbingan_online_dosen.dart';
+import 'package:bimta/screens/preview_pdf.dart';
 import 'package:bimta/services/progress/bimbingan_online_dosen.dart';
 import 'package:flutter/material.dart';
 import 'package:bimta/layouts/card_bimbingan_online.dart';
@@ -53,7 +54,7 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
       case 0:
         return 'unread';
       case 1:
-        return 'revisi';
+        return 'need_revision';
       case 2:
         return 'approved';
       default:
@@ -207,6 +208,23 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
                                         pesan: progress.pesan,
                                         namaFile: progress.fileName,
                                         status: progress.status,
+                                        fileUrl: progress.fileUrl, // Tambahkan ini
+                                        onPreview: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PdfPreviewScreen(
+                                                fileUrl: progress.fileUrl,
+                                                fileName: progress.fileName,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        onCorrection: () {
+                                          // Handle correction action
+                                          // Misalnya navigate ke halaman correction
+                                          print('Correction clicked for ${progress.nama}');
+                                        },
                                       ),
                                       const SizedBox(height: 8),
                                     ],

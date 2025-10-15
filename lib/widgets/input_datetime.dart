@@ -40,20 +40,32 @@ class _DateInputWidgetState extends State<DateInputWidget> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: selectedDate ?? DateTime.now(),
-      firstDate: widget.firstDate ?? DateTime.now(),
+      firstDate: widget.firstDate ?? DateTime(2000),
       lastDate: widget.lastDate ?? DateTime(2030),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Colors.deepPurple,
+            colorScheme: ColorScheme.light(
+              primary: Colors.deepPurple,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+            dialogBackgroundColor: Colors.white,
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
         _dateController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
 
-      // Callback ke parent widget
-      if (widget.onDateSelected != null) {
-        widget.onDateSelected!(picked);
-      }
+      widget.onDateSelected?.call(picked);
     }
   }
 
