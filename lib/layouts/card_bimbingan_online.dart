@@ -70,7 +70,6 @@ class CardBimbinganOnline extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             children: [
               Container(
@@ -180,7 +179,7 @@ class CardBimbinganOnline extends StatelessWidget {
 
           if (status != 'approved')
             ActionButtons(
-              selectedIndex: -1,
+              selectedIndex: selectedIndex,
               onChanged: (index) {},
               items: const [
                 Text("Preview"),
