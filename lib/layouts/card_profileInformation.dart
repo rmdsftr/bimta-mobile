@@ -1,12 +1,209 @@
 import 'package:flutter/material.dart';
 
-class ProfileInformationCard extends StatelessWidget {
+class ProfileInformationCard extends StatefulWidget {
   final String role;
   const ProfileInformationCard({super.key, required this.role});
 
   @override
+  State<ProfileInformationCard> createState() => _ProfileInformationCardState();
+}
+
+class _ProfileInformationCardState extends State<ProfileInformationCard> {
+  final _judulController = TextEditingController();
+  final _nomorHpController = TextEditingController();
+
+  // =========================
+  // 🧩 FUNCTION: SUCCESS DIALOG
+  // =========================
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_outline,
+                    color: Colors.white, size: 50),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Berhasil!',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 22,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  minimumSize: const Size(double.infinity, 45),
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =========================
+  // 🧩 FUNCTION: ERROR DIALOG
+  // =========================
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFEF5350), Color(0xFFE53935)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child:
+                const Icon(Icons.error_outline, color: Colors.white, size: 50),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Oops!',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 22,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF677BE6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  minimumSize: const Size(double.infinity, 45),
+                ),
+                child: const Text(
+                  'Coba Lagi',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =========================
+  // 🧩 FUNCTION: VALIDASI
+  // =========================
+  void _ajukanJudul() {
+    if (_judulController.text.trim().isEmpty) {
+      _showErrorDialog("Judul TA tidak boleh kosong.");
+      return;
+    }
+    _showSuccessDialog(
+        "Perubahan judul TA diajukan.\nMenunggu persetujuan dosen pembimbing.");
+  }
+
+  void _simpanNomorHP() {
+    if (_nomorHpController.text.trim().isEmpty) {
+      _showErrorDialog("Nomor HP tidak boleh kosong.");
+      return;
+    }
+    _showSuccessDialog("Nomor HP berhasil diperbarui.");
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isMahasiswa = role.toLowerCase() == 'mahasiswa';
+    final isMahasiswa = widget.role.toLowerCase() == 'mahasiswa';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -34,11 +231,9 @@ class ProfileInformationCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // ==============================
-          // Input Mahasiswa: Judul TA
-          // ==============================
           if (isMahasiswa) ...[
-            _buildTextField("Judul Tugas Akhir", "masukkan judul TA anda"),
+            _buildTextField("Judul Tugas Akhir", "Masukkan judul TA anda",
+                controller: _judulController),
             const SizedBox(height: 8),
             Row(
               children: const [
@@ -57,60 +252,32 @@ class ProfileInformationCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-          ],
-
-          // ==============================
-          // Tombol untuk Mahasiswa
-          // ==============================
-          if (isMahasiswa) ...[
             _buildGradientButton(
               context,
               label: "Ajukan Perubahan Judul TA",
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Perubahan judul TA diajukan. Menunggu persetujuan dosen.",
-                      style: TextStyle(fontFamily: 'Poppins'),
-                    ),
-                  ),
-                );
-              },
+              onPressed: _ajukanJudul,
             ),
             const SizedBox(height: 12),
           ],
 
-
-          // ==============================
-          // Input Nomor HP (umum)
-          // ==============================
-          _buildTextField("Nomor HP", "masukkan nomor HP aktif anda"),
+          _buildTextField("Nomor HP", "Masukkan nomor HP aktif anda",
+              controller: _nomorHpController),
           const SizedBox(height: 24),
-
-          // ==============================
-          // Tombol Simpan Nomor HP
-          // ==============================
           _buildGradientButton(
             context,
             label: "Simpan Nomor HP",
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Nomor HP berhasil diperbarui.",
-                    style: TextStyle(fontFamily: 'Poppins'),
-                  ),
-                ),
-              );
-            },
+            onPressed: _simpanNomorHP,
           ),
         ],
       ),
     );
   }
 
-  // Helper untuk textfield
-  static Widget _buildTextField(String label, String hint) {
+  // =========================
+  // 🧩 Helper Widget
+  // =========================
+  static Widget _buildTextField(String label, String hint,
+      {TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,6 +291,7 @@ class ProfileInformationCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
@@ -141,7 +309,6 @@ class ProfileInformationCard extends StatelessWidget {
     );
   }
 
-  // Helper untuk tombol gradient
   static Widget _buildGradientButton(
       BuildContext context, {
         required String label,
@@ -162,10 +329,7 @@ class ProfileInformationCard extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [
-                Color(0xFF677BE6),
-                Color(0xFF754EA6),
-              ],
+              colors: [Color(0xFF677BE6), Color(0xFF754EA6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
