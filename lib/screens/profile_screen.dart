@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/services/auth/logout.dart';
+import 'package:bimta/services/profile/ganti_foto.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bimta/widgets/background.dart';
@@ -18,10 +19,13 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? nama;
   String? role;
+  String? photoUrl;
   File? _selectedImage;
 
   final LogoutService _logoutService = LogoutService();
+  final ProfilePhotoService _profilePhotoService = ProfilePhotoService();
   bool _isLoggingOut = false;
+  bool _isUploadingPhoto = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -75,16 +79,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+        _isUploadingPhoto = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Foto profil berhasil diubah.",
-            style: TextStyle(fontFamily: 'Poppins'),
+      // Upload foto ke backend
+      final response = await _profilePhotoService.changePhoto(_selectedImage!);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+
+      if (response.success) {
+        setState(() {
+          photoUrl = response.photoUrl;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.message,
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.green,
           ),
-        ),
-      );
+        );
+      } else {
+        // Rollback jika gagal
+        setState(() {
+          _selectedImage = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.message,
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -177,6 +213,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  ImageProvider _getProfileImage() {
+    if (_selectedImage != null) {
+      return FileImage(_selectedImage!);
+    } else if (photoUrl != null && photoUrl!.isNotEmpty) {
+      return NetworkImage(photoUrl!);
+    } else {
+      return const AssetImage("assets/images/avatar.png");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,18 +252,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 backgroundColor: Colors.white,
                                 child: CircleAvatar(
                                   radius: 77,
-                                  backgroundImage: _selectedImage != null
-                                      ? FileImage(_selectedImage!)
-                                      : const AssetImage(
-                                      "assets/images/avatar.png")
-                                  as ImageProvider,
+                                  backgroundImage: _getProfileImage(),
                                 ),
                               ),
                               Positioned(
                                 bottom: 4,
                                 right: 4,
                                 child: GestureDetector(
-                                  onTap: _pickImage,
+                                  onTap: _isUploadingPhoto ? null : _pickImage,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
@@ -231,7 +273,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ],
                                     ),
-                                    child: const Icon(
+                                    child: _isUploadingPhoto
+                                        ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black54,
+                                      ),
+                                    )
+                                        : const Icon(
                                       Icons.camera_alt,
                                       size: 22,
                                       color: Colors.black54,
