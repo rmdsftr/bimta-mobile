@@ -1,6 +1,7 @@
 import 'package:bimta/screens/dosen/home_screen.dart';
 import 'package:bimta/screens/dosen/jadwal_dosen.dart';
 import 'package:bimta/screens/dosen/mahasiswadibimbing_screen.dart';
+import 'package:bimta/screens/dosen/mahasiswajadwal_screen.dart';
 import 'package:bimta/screens/dosen/mahasiswaprogress_screen.dart';
 import 'package:bimta/screens/dosen/view_profil_mahasiswa.dart';
 import 'package:bimta/screens/mahasiswa/lihat_jadwal_dosen.dart';
@@ -16,8 +17,11 @@ import 'package:bimta/screens/mahasiswa/riwayat_screen.dart';
 import 'package:bimta/screens/profile_screen.dart';
 import 'package:bimta/screens/referensi_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
 
@@ -48,7 +52,8 @@ class MyApp extends StatelessWidget {
           final args = ModalRoute.of(context)!.settings.arguments as String;
           return ViewProfileMahasiswaScreen(mahasiswaId: args);
         },
-        '/dosen/mahasiswaprogress' : (context) => const MahasiswaProgressScreen()
+        '/dosen/mahasiswaprogress' : (context) => const MahasiswaProgressScreen(),
+        '/dosen/mahasiswajadwal' : (context) => const MahasiswaJadwalScreen()
       },
     );
   }

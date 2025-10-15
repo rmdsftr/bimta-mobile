@@ -13,11 +13,25 @@ class GeneralService {
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);
+
+        // DEBUG: Print raw response
+        print('=== DEBUG RAW RESPONSE ===');
+        print(jsonData);
+
+        // DEBUG: Print first item to see structure
+        if (jsonData.isNotEmpty) {
+          print('=== DEBUG FIRST ITEM ===');
+          print(jsonData[0]);
+          print('doc_url value: ${jsonData[0]['doc_url']}');
+        }
+
         return jsonData.map((json) => ReferensiTa.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load referensi TA: ${response.statusCode}');
       }
     } catch (e) {
+      print('=== DEBUG ERROR ===');
+      print(e);
       throw Exception('Error fetching referensi TA: $e');
     }
   }

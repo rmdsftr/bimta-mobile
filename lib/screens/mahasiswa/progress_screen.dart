@@ -55,7 +55,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
       case 1:
         return 'read';
       case 2:
-        return 'revisi';
+        return 'need_revision';
       case 3:
         return 'approved';
       default:

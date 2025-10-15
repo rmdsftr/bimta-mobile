@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:bimta/widgets/custom_alert.dart';
+
 
 class ProfileCard extends StatefulWidget {
   const ProfileCard({super.key});
@@ -13,175 +15,6 @@ class _ProfileCardState extends State<ProfileCard> {
   final confirmPasswordController = TextEditingController();
 
   // =========================
-  // ✅ SUCCESS DIALOG
-  // =========================
-  void _showSuccessDialog(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF677BE6), Color(0xFF754EA6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_circle_outline,
-                    color: Colors.white, size: 50),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Berhasil!',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF677BE6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 45),
-                ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================
-  // ❌ ERROR DIALOG
-  // =========================
-  void _showErrorDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFEF5350), Color(0xFFE53935)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child:
-                const Icon(Icons.error_outline, color: Colors.white, size: 50),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF677BE6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 45),
-                ),
-                child: const Text(
-                  'Coba Lagi',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================
   // 🔒 HANDLE PASSWORD CHANGE
   // =========================
   void _handlePasswordChange() {
@@ -190,18 +23,28 @@ class _ProfileCardState extends State<ProfileCard> {
     final confirm = confirmPasswordController.text.trim();
 
     if (current.isEmpty || newPass.isEmpty || confirm.isEmpty) {
-      _showErrorDialog("Gagal Mengubah Password",
-          "Harap isi semua kolom terlebih dahulu.");
+      CustomDialog.showError(
+        context: context,
+        title: "Gagal Mengubah Password",
+        message: "Harap isi semua kolom terlebih dahulu.",
+      );
       return;
     }
 
     if (newPass != confirm) {
-      _showErrorDialog("Password Tidak Sama",
-          "Pastikan password baru dan konfirmasi password cocok.");
+      CustomDialog.showError(
+        context: context,
+        title: "Password Tidak Sama",
+        message: "Pastikan password baru dan konfirmasi password cocok.",
+      );
       return;
     }
 
-    _showSuccessDialog("Password berhasil diubah!\nSilakan login kembali untuk keamanan akun Anda.");
+    CustomDialog.showSuccess(
+      context: context,
+      message:
+      "Password berhasil diubah!\nSilakan login kembali untuk keamanan akun Anda.",
+    );
   }
 
   @override

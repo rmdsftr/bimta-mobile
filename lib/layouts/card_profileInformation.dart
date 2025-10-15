@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bimta/widgets/custom_alert.dart'; // pastikan path sesuai (custom_alert.dart berisi class CustomDialog)
 
 class ProfileInformationCard extends StatefulWidget {
   final String role;
@@ -13,192 +14,37 @@ class _ProfileInformationCardState extends State<ProfileInformationCard> {
   final _nomorHpController = TextEditingController();
 
   // =========================
-  // 🧩 FUNCTION: SUCCESS DIALOG
-  // =========================
-  void _showSuccessDialog(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_circle_outline,
-                    color: Colors.white, size: 50),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Berhasil!',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 45),
-                ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================
-  // 🧩 FUNCTION: ERROR DIALOG
-  // =========================
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFEF5350), Color(0xFFE53935)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child:
-                const Icon(Icons.error_outline, color: Colors.white, size: 50),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Oops!',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 22,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF677BE6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 45),
-                ),
-                child: const Text(
-                  'Coba Lagi',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================
   // 🧩 FUNCTION: VALIDASI
   // =========================
   void _ajukanJudul() {
     if (_judulController.text.trim().isEmpty) {
-      _showErrorDialog("Judul TA tidak boleh kosong.");
+      CustomDialog.showError(
+        context: context,
+        message: "Judul TA tidak boleh kosong.",
+      );
       return;
     }
-    _showSuccessDialog(
-        "Perubahan judul TA diajukan.\nMenunggu persetujuan dosen pembimbing.");
+
+    CustomDialog.showSuccess(
+      context: context,
+      message:
+      "Perubahan judul TA diajukan.\nMenunggu persetujuan dosen pembimbing.",
+    );
   }
 
   void _simpanNomorHP() {
     if (_nomorHpController.text.trim().isEmpty) {
-      _showErrorDialog("Nomor HP tidak boleh kosong.");
+      CustomDialog.showError(
+        context: context,
+        message: "Nomor HP tidak boleh kosong.",
+      );
       return;
     }
-    _showSuccessDialog("Nomor HP berhasil diperbarui.");
+
+    CustomDialog.showSuccess(
+      context: context,
+      message: "Nomor HP berhasil diperbarui.",
+    );
   }
 
   @override
@@ -232,8 +78,11 @@ class _ProfileInformationCardState extends State<ProfileInformationCard> {
           const SizedBox(height: 20),
 
           if (isMahasiswa) ...[
-            _buildTextField("Judul Tugas Akhir", "Masukkan judul TA anda",
-                controller: _judulController),
+            _buildTextField(
+              "Judul Tugas Akhir",
+              "Masukkan judul TA anda",
+              controller: _judulController,
+            ),
             const SizedBox(height: 8),
             Row(
               children: const [
@@ -260,8 +109,11 @@ class _ProfileInformationCardState extends State<ProfileInformationCard> {
             const SizedBox(height: 12),
           ],
 
-          _buildTextField("Nomor HP", "Masukkan nomor HP aktif anda",
-              controller: _nomorHpController),
+          _buildTextField(
+            "Nomor HP",
+            "Masukkan nomor HP aktif anda",
+            controller: _nomorHpController,
+          ),
           const SizedBox(height: 24),
           _buildGradientButton(
             context,

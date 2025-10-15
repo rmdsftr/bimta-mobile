@@ -64,7 +64,7 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                 maxLines: 5,
                 minLines: 3,
                 decoration: InputDecoration(
-                  hintText: "Tulis sesuatu di sini...",
+                  hintText: "Deskripsikan kegiatan Anda",
                   hintStyle: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 13,
@@ -465,7 +465,7 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                                       Color(0xFF754EA6),
                                     ],
                                   ),
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(25),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.1),

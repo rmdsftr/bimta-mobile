@@ -1,4 +1,5 @@
 import 'package:bimta/layouts/card_riwayat.dart';
+import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/models/view_profil_mahasiswa.dart';
 import 'package:bimta/services/profile/view_profil_mahasiswa.dart';
 import 'package:flutter/material.dart';
@@ -255,7 +256,26 @@ class _ProfileScreenState extends State<ViewProfileMahasiswaScreen> {
       body: Stack(
         children: [
           const BackgroundWidget(),
-          const LogoCorner(),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: CustomTopbar(
+              leading: Row(
+                children: [
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.pop(context);
+                    },
+                    child: Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           if (_isLoading)
             _buildLoadingState()
           else if (_errorMessage != null)
