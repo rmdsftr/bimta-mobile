@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:bimta/layouts/custom_topbar.dart';
 import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/services/auth/logout.dart';
+import 'package:bimta/services/profile/ganti_foto.dart';
+import 'package:bimta/widgets/photo_corner.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:bimta/widgets/background.dart';
-import 'package:bimta/widgets/logo_corner.dart';
 import 'package:bimta/layouts/card_profile.dart';
 import 'package:bimta/layouts/card_profileInformation.dart';
 
@@ -18,10 +20,14 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String? nama;
   String? role;
+  String? photoUrl;
   File? _selectedImage;
+  final GlobalKey<PhotoCornerState> _photoCornerKey = GlobalKey<PhotoCornerState>();
 
   final LogoutService _logoutService = LogoutService();
+  final ProfilePhotoService _profilePhotoService = ProfilePhotoService();
   bool _isLoggingOut = false;
+  bool _isUploadingPhoto = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -75,16 +81,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+        _isUploadingPhoto = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Foto profil berhasil diubah.",
-            style: TextStyle(fontFamily: 'Poppins'),
+      final response = await _profilePhotoService.changePhoto(_selectedImage!);
+
+      if (!mounted) return;
+
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+
+      if (response.success) {
+        setState(() {
+          photoUrl = response.photoUrl;
+        });
+
+        _photoCornerKey.currentState?.refreshPhoto();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.message,
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.green,
           ),
-        ),
-      );
+        );
+      } else {
+        setState(() {
+          _selectedImage = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.message,
+              style: const TextStyle(fontFamily: 'Poppins'),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -96,9 +134,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: const Text(
             'Konfirmasi Logout',
             style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 17,
-                fontWeight: FontWeight.w600),
+              fontFamily: 'Poppins',
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           content: const Text(
             'Apakah Anda yakin ingin keluar?',
@@ -109,8 +148,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text(
                 'Batal',
-                style:
-                TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             TextButton(
@@ -158,7 +199,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -177,6 +217,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  ImageProvider _getProfileImage() {
+    if (_selectedImage != null) {
+      return FileImage(_selectedImage!);
+    } else if (photoUrl != null && photoUrl!.isNotEmpty) {
+      return NetworkImage(photoUrl!);
+    } else {
+      return const AssetImage("assets/images/avatar.png");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,8 +235,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Stack(
         children: [
           const BackgroundWidget(),
-          const LogoCorner(),
 
+          // 🔹 Header mirip NotifikasiScreen
+          Positioned(
+            top: 50,
+            left: 20,
+            right: 20,
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.arrow_back_ios_new, size: 18),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  "Profil",
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 🔹 Isi konten utama
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.only(top: 100, bottom: 100),
@@ -201,23 +275,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Stack(
                             clipBehavior: Clip.none,
                             children: [
-                              CircleAvatar(
-                                radius: 80,
-                                backgroundColor: Colors.white,
-                                child: CircleAvatar(
-                                  radius: 77,
-                                  backgroundImage: _selectedImage != null
-                                      ? FileImage(_selectedImage!)
-                                      : const AssetImage(
-                                      "assets/images/avatar.png")
-                                  as ImageProvider,
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                ),
+                                child: _selectedImage != null
+                                    ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Image.file(
+                                    _selectedImage!,
+                                    width: 160,
+                                    height: 160,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                                    : PhotoCorner(
+                                  key: _photoCornerKey,
+                                  height: 160,
+                                  width: 160,
                                 ),
                               ),
                               Positioned(
                                 bottom: 4,
                                 right: 4,
                                 child: GestureDetector(
-                                  onTap: _pickImage,
+                                  onTap: _isUploadingPhoto ? null : _pickImage,
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
@@ -231,7 +317,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                       ],
                                     ),
-                                    child: const Icon(
+                                    child: _isUploadingPhoto
+                                        ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.black54,
+                                      ),
+                                    )
+                                        : const Icon(
                                       Icons.camera_alt,
                                       size: 22,
                                       color: Colors.black54,
@@ -260,12 +355,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 30),
-
                       if (role != null) ProfileInformationCard(role: role!),
                       const SizedBox(height: 30),
-
                       const ProfileCard(),
                       const SizedBox(height: 30),
                     ],
@@ -275,6 +367,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
+          // 🔹 Tombol Logout tetap di bawah
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -302,8 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       strokeWidth: 2,
                     ),
                   )
-                      : const Icon(Icons.logout,
-                      color: Colors.white, size: 22),
+                      : const Icon(Icons.logout, color: Colors.white, size: 22),
                   label: Text(
                     _isLoggingOut ? "Logging Out..." : "Logout",
                     style: const TextStyle(

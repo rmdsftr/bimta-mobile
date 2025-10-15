@@ -75,6 +75,26 @@ class _HomescreenState extends State<Homescreen> {
     }
   }
 
+  bool get isBimbinganTerlambat {
+    if (aktivitasList.isEmpty) return true;
+
+    // Filter hanya aktivitas bimbingan
+    final bimbinganList = aktivitasList
+        .where((a) =>
+    a.icon == 'progress' ||
+        a.nama.toLowerCase().contains('bimbingan') ||
+        a.nama.toLowerCase().contains('konsultasi'))
+        .toList();
+
+    if (bimbinganList.isEmpty) return true;
+
+    bimbinganList.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+    final lastBimbingan = bimbinganList.first.tanggal;
+    final selisihHari = DateTime.now().difference(lastBimbingan).inDays;
+
+    return selisihHari >= 14;
+  }
+
   IconData _getIconByType(String iconType) {
     switch (iconType) {
       case 'progress':
@@ -156,6 +176,41 @@ class _HomescreenState extends State<Homescreen> {
                         style: TextStyle(fontFamily: 'Poppins'),
                       ),
                       SizedBox(height: 30),
+                      if (!isLoadingAktivitas &&
+                          errorAktivitas == null &&
+                          isBimbinganTerlambat)
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Kamu belum melakukan bimbingan selama 2 minggu terakhir. "
+                                      "Pastikan melakukan bimbingan minimal satu kali setiap 2 minggu ya!",
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(

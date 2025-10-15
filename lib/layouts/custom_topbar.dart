@@ -47,8 +47,12 @@ class CustomTopbar extends StatelessWidget implements PreferredSizeWidget {
                         size: 30,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    const PhotoCorner(),
+                    SizedBox(width: 10),
+                    PhotoCorner(
+                      height: 35,
+                      width: 35,
+                    ),
+
                   ],
                 ),
               ),

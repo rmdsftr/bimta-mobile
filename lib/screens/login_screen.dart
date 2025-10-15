@@ -242,21 +242,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-          TextButton(
-            onPressed: _isLoading ? null : () {
-              // Navigate to forgot password screen
-              // Navigator.pushNamed(context, '/forgot-password');
-            },
-            child: const Text(
-              "Forgot Password?",
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF4D81E7),
-              ),
-            ),
-          ),
         ],
       ),
     );

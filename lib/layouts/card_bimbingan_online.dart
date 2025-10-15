@@ -83,7 +83,18 @@ class CardBimbinganOnline extends StatelessWidget {
                 width: 42,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: const BorderRadius.all(Radius.circular(50)),
+                ),
+                child: Center(
+                  child: Text(
+                    nama.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
