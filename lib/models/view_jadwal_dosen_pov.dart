@@ -1,51 +1,68 @@
-class JadwalModel {
+class JadwalBimbingan {
   final String bimbinganId;
-  final String subjek;
+  final DateTime datetime;
+  final String nama;
+  final String nim;
+  final String? photo_url;
   final String tanggal;
   final String waktu;
   final String lokasi;
+  final String topik;
   final String pesan;
   final String status;
   final String? pesanDosen;
 
-  JadwalModel({
+  JadwalBimbingan({
     required this.bimbinganId,
-    required this.subjek,
+    required this.datetime,
+    required this.nama,
+    required this.nim,
+    this.photo_url,
     required this.tanggal,
     required this.waktu,
     required this.lokasi,
+    required this.topik,
     required this.pesan,
     required this.status,
     this.pesanDosen
   });
 
-  factory JadwalModel.fromJson(Map<String, dynamic> json) {
-    return JadwalModel(
+  factory JadwalBimbingan.fromJson(Map<String, dynamic> json) {
+    return JadwalBimbingan(
       bimbinganId: json['bimbingan_id'] ?? '',
-      subjek: json['subjek'] ?? '',
+      datetime: DateTime.tryParse(json['datetime'] ?? '') ?? DateTime.now(),
+      nama: json['nama'] ?? '',
+      nim: json['nim'] ?? '',
+        photo_url: json['photo_url'] ?? '',
       tanggal: json['tanggal'] ?? '',
       waktu: json['waktu'] ?? '',
       lokasi: json['lokasi'] ?? '',
+      topik: json['topik'] ?? '',
       pesan: json['pesan'] ?? '',
-      status: json['status'] ?? 'waiting',
-      pesanDosen: json['pesanDosen'] ?? '',
+      status: json['status'] ?? '',
+      pesanDosen: json['pesanDosen'] ?? ''
     );
   }
 
+
   Map<String, dynamic> toJson() {
     return {
-      'bimbingan_id': bimbinganId,
-      'subjek': subjek,
+      'id' : bimbinganId,
+      'datetime' : datetime,
+      'nama': nama,
+      'nim': nim,
+      'photo_url' : photo_url,
       'tanggal': tanggal,
       'waktu': waktu,
       'lokasi': lokasi,
+      'topik': topik,
       'pesan': pesan,
       'status': status,
       'pesanDosen' : pesanDosen
     };
   }
 
-  // Helper method untuk format tanggal Indonesia
+  // Helper method untuk format tanggal
   String get formattedTanggal {
     try {
       final date = DateTime.parse(tanggal);
@@ -56,19 +73,6 @@ class JadwalModel {
       return '${date.day} ${months[date.month - 1]} ${date.year}';
     } catch (e) {
       return tanggal;
-    }
-  }
-
-  // Helper method untuk format waktu HH:MM
-  String get formattedWaktu {
-    try {
-      if (waktu.contains(':')) {
-        final parts = waktu.split(':');
-        return '${parts[0]}:${parts[1]}';
-      }
-      return waktu;
-    } catch (e) {
-      return waktu;
     }
   }
 }

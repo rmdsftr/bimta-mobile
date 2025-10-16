@@ -1,12 +1,111 @@
+import 'package:bimta/services/auth/change_number.dart';
+import 'package:bimta/services/profile/ganti_judul.dart';
 import 'package:flutter/material.dart';
 
-class ProfileInformationCard extends StatelessWidget {
+class ProfileInformationCard extends StatefulWidget {
   final String role;
   const ProfileInformationCard({super.key, required this.role});
 
   @override
+  State<ProfileInformationCard> createState() => _ProfileInformationCardState();
+}
+
+class _ProfileInformationCardState extends State<ProfileInformationCard> {
+  final ProfileService _profileService = ProfileService();
+  final ChangeJudulService _changeJudulService = ChangeJudulService();
+
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _taController = TextEditingController();
+
+  bool _isLoadingPhone = false;
+  bool _isLoadingTA = false;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _taController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleChangePhone() async {
+    final phone = _phoneController.text.trim();
+
+    if (phone.isEmpty) {
+      _showSnackBar('Nomor HP tidak boleh kosong', isError: true);
+      return;
+    }
+
+    if (!_profileService.validatePhoneNumber(phone)) {
+      _showSnackBar(
+        'Format nomor HP tidak valid. Gunakan format 08xxx atau 628xxx',
+        isError: true,
+      );
+      return;
+    }
+
+    setState(() => _isLoadingPhone = true);
+
+    try {
+      final formattedPhone = _profileService.formatPhoneNumber(phone);
+      final response = await _profileService.changeNumber(formattedPhone);
+
+      _showSnackBar(response.message);
+      _phoneController.clear();
+    } catch (e) {
+      _showSnackBar(e.toString().replaceAll('Exception: ', ''), isError: true);
+    } finally {
+      setState(() => _isLoadingPhone = false);
+    }
+  }
+
+  Future<void> _handleChangeTATitle() async {
+    final title = _taController.text.trim();
+
+    if (title.isEmpty) {
+      _showSnackBar('Judul TA tidak boleh kosong', isError: true);
+      return;
+    }
+
+    if (!_changeJudulService.validateJudul(title)) {
+      if (title.length < 10) {
+        _showSnackBar('Judul TA minimal 10 karakter', isError: true);
+      } else if (title.length > 200) {
+        _showSnackBar('Judul TA maksimal 200 karakter', isError: true);
+      }
+      return;
+    }
+
+    setState(() => _isLoadingTA = true);
+
+    try {
+      final formattedTitle = _changeJudulService.formatJudul(title);
+      final response = await _changeJudulService.changeJudul(formattedTitle);
+
+      _showSnackBar(response.message);
+      _taController.clear();
+    } catch (e) {
+      _showSnackBar(e.toString().replaceAll('Exception: ', ''), isError: true);
+    } finally {
+      setState(() => _isLoadingTA = false);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Poppins'),
+        ),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isMahasiswa = role.toLowerCase() == 'mahasiswa';
+    final isMahasiswa = widget.role.toLowerCase() == 'mahasiswa';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -38,7 +137,13 @@ class ProfileInformationCard extends StatelessWidget {
           // Input Mahasiswa: Judul TA
           // ==============================
           if (isMahasiswa) ...[
-            _buildTextField("Judul Tugas Akhir", "masukkan judul TA anda"),
+            _buildTextField(
+              "Judul Tugas Akhir",
+              "masukkan judul TA anda (min. 10 karakter)",
+              controller: _taController,
+              maxLines: 3,
+              maxLength: 200,
+            ),
             const SizedBox(height: 8),
             Row(
               children: const [
@@ -65,26 +170,22 @@ class ProfileInformationCard extends StatelessWidget {
           if (isMahasiswa) ...[
             _buildGradientButton(
               context,
-              label: "Ajukan Perubahan Judul TA",
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Perubahan judul TA diajukan. Menunggu persetujuan dosen.",
-                      style: TextStyle(fontFamily: 'Poppins'),
-                    ),
-                  ),
-                );
-              },
+              label: "Ubah Judul TA",
+              onPressed: _isLoadingTA ? null : _handleChangeTATitle,
+              isLoading: _isLoadingTA,
             ),
             const SizedBox(height: 12),
           ],
 
-
           // ==============================
           // Input Nomor HP (umum)
           // ==============================
-          _buildTextField("Nomor HP", "masukkan nomor HP aktif anda"),
+          _buildTextField(
+            "Nomor HP",
+            "masukkan nomor HP aktif anda",
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+          ),
           const SizedBox(height: 24),
 
           // ==============================
@@ -93,24 +194,22 @@ class ProfileInformationCard extends StatelessWidget {
           _buildGradientButton(
             context,
             label: "Simpan Nomor HP",
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "Nomor HP berhasil diperbarui.",
-                    style: TextStyle(fontFamily: 'Poppins'),
-                  ),
-                ),
-              );
-            },
+            onPressed: _isLoadingPhone ? null : _handleChangePhone,
+            isLoading: _isLoadingPhone,
           ),
         ],
       ),
     );
   }
 
-  // Helper untuk textfield
-  static Widget _buildTextField(String label, String hint) {
+  Widget _buildTextField(
+      String label,
+      String hint, {
+        required TextEditingController controller,
+        TextInputType? keyboardType,
+        int maxLines = 1,
+        int? maxLength,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,6 +223,10 @@ class ProfileInformationCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          maxLength: maxLength,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 12),
@@ -135,17 +238,21 @@ class ProfileInformationCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
             ),
+            counterStyle: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 11,
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Helper untuk tombol gradient
-  static Widget _buildGradientButton(
+  Widget _buildGradientButton(
       BuildContext context, {
         required String label,
-        required VoidCallback onPressed,
+        required VoidCallback? onPressed,
+        bool isLoading = false,
       }) {
     return SizedBox(
       width: double.infinity,
@@ -161,8 +268,10 @@ class ProfileInformationCard extends StatelessWidget {
         ),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
+            gradient: LinearGradient(
+              colors: onPressed == null
+                  ? [Colors.grey, Colors.grey]
+                  : const [
                 Color(0xFF677BE6),
                 Color(0xFF754EA6),
               ],
@@ -174,7 +283,16 @@ class ProfileInformationCard extends StatelessWidget {
           child: Container(
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(vertical: 14),
-            child: Text(
+            child: isLoading
+                ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+                : Text(
               label,
               style: const TextStyle(
                 fontFamily: 'Poppins',

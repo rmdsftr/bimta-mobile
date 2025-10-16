@@ -245,6 +245,7 @@ class _JadwalScreenState extends State<JadwalScreen> {
                                     lokasi: jadwal.lokasi,
                                     pesan: jadwal.pesan,
                                     status: jadwal.status,
+                                    pesanDosen: jadwal.pesanDosen,
                                   ),
                                 );
                               }).toList(),

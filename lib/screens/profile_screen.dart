@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:bimta/layouts/custom_topbar.dart';
+import 'package:bimta/services/auth/mahasiswaInfo.dart';
 import 'package:bimta/services/auth/token_storage.dart';
 import 'package:bimta/services/auth/logout.dart';
 import 'package:bimta/services/profile/ganti_foto.dart';
@@ -22,13 +23,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? nama;
   String? role;
   String? photoUrl;
+  String? judulTugasAkhir;
+  String? noWhatsapp;
   File? _selectedImage;
   final GlobalKey<PhotoCornerState> _photoCornerKey = GlobalKey<PhotoCornerState>();
 
   final LogoutService _logoutService = LogoutService();
   final ProfilePhotoService _profilePhotoService = ProfilePhotoService();
+  final MahasiswaInfoService _mahasiswaInfoService = MahasiswaInfoService();
+
   bool _isLoggingOut = false;
   bool _isUploadingPhoto = false;
+  bool _isLoadingMahasiswaInfo = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -44,6 +50,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
       nama = userData['nama'];
       role = userData['role'];
     });
+
+    // Load info mahasiswa jika role adalah mahasiswa
+    if (role?.toLowerCase() == 'mahasiswa') {
+      loadMahasiswaInfo();
+    }
+  }
+
+  Future<void> loadMahasiswaInfo() async {
+    setState(() {
+      _isLoadingMahasiswaInfo = true;
+    });
+
+    try {
+      final response = await _mahasiswaInfoService.getMyInfo();
+
+      if (!mounted) return;
+
+      if (response.success && response.data != null) {
+        setState(() {
+          judulTugasAkhir = response.data!.judul;
+          noWhatsapp = response.data!.noWhatsapp;
+          _isLoadingMahasiswaInfo = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingMahasiswaInfo = false;
+        });
+
+        // Optional: Uncomment jika ingin menampilkan error
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text(
+        //       response.message,
+        //       style: const TextStyle(fontFamily: 'Poppins'),
+        //     ),
+        //     backgroundColor: Colors.orange,
+        //   ),
+        // );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoadingMahasiswaInfo = false;
+      });
+    }
   }
 
   Future<void> _pickImage() async {
@@ -226,6 +278,107 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Widget _buildMahasiswaInfoCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Informasi Mahasiswa',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (_isLoadingMahasiswaInfo)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.black54,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(
+            icon: Icons.book_outlined,
+            label: '',
+            value: judulTugasAkhir ?? 'Belum diisi',
+            isLoading: _isLoadingMahasiswaInfo,
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            icon: Icons.phone_outlined,
+            label: '',
+            value: noWhatsapp ?? 'Belum diisi',
+            isLoading: _isLoadingMahasiswaInfo,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isLoading = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: Colors.green,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              isLoading
+                  ? Container(
+                height: 14,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              )
+                  : Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -330,6 +483,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                       const SizedBox(height: 30),
+
+                      // Card Informasi Mahasiswa (hanya untuk role mahasiswa)
+                      if (role?.toLowerCase() == 'mahasiswa') ...[
+                        _buildMahasiswaInfoCard(),
+                        const SizedBox(height: 20),
+                      ],
 
                       if (role != null) ProfileInformationCard(role: role!),
                       const SizedBox(height: 30),

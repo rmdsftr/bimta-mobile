@@ -16,7 +16,7 @@ class FormOfflineScreen extends StatefulWidget {
 
 class _FormOfflineState extends State<FormOfflineScreen> {
   DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+  TimeOfDay? selectedTime = TimeOfDay(hour: 9, minute: 0);
   final TextEditingController _judulController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();

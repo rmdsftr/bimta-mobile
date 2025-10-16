@@ -56,7 +56,7 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
       case 1:
         return 'need_revision';
       case 2:
-        return 'approved';
+        return 'done';
       default:
         return 'unread';
     }
@@ -174,24 +174,26 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
                         else if (filteredList.isEmpty)
                             Container(
                               padding: const EdgeInsets.all(40),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 60,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    "Belum ada data bimbingan",
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 16,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w500,
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.inbox_outlined,
+                                      size: 60,
+                                      color: Colors.grey[400],
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      "Belum ada data bimbingan",
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             )
                           else
@@ -221,9 +223,7 @@ class _MahasiswaProgressScreenState extends State<MahasiswaProgressScreen> {
                                           );
                                         },
                                         onCorrection: () {
-                                          // Handle correction action
-                                          // Misalnya navigate ke halaman correction
-                                          print('Correction clicked for ${progress.nama}');
+                                          Navigator.pushNamed(context, '/dosen/koreksi');
                                         },
                                       ),
                                       const SizedBox(height: 8),

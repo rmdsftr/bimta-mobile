@@ -681,6 +681,7 @@ class _MahasiswaDibimbingState extends State<MahasiswaDibimbingScreen> {
                                     nama: data.nama,
                                     nim: data.userId,
                                     judul: data.judul ?? 'Judul belum ditentukan',
+                                    photoUrl: data.photo_url,
                                   ),
                                 ),
                               );

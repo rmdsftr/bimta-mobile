@@ -1,5 +1,6 @@
 import 'package:bimta/screens/dosen/home_screen.dart';
 import 'package:bimta/screens/dosen/jadwal_dosen.dart';
+import 'package:bimta/screens/dosen/koreksi_progress.dart';
 import 'package:bimta/screens/dosen/mahasiswadibimbing_screen.dart';
 import 'package:bimta/screens/dosen/mahasiswajadwal_screen.dart';
 import 'package:bimta/screens/dosen/mahasiswaprogress_screen.dart';
@@ -53,7 +54,8 @@ class MyApp extends StatelessWidget {
           return ViewProfileMahasiswaScreen(mahasiswaId: args);
         },
         '/dosen/mahasiswaprogress' : (context) => const MahasiswaProgressScreen(),
-        '/dosen/mahasiswajadwal' : (context) => const MahasiswaJadwalScreen()
+        '/dosen/mahasiswajadwal' : (context) => const MahasiswaJadwalScreen(),
+        '/dosen/koreksi' : (context) => const PdfAnnotationScreen(fileUrl: 'https://tvllkcdstdgcwlepzerx.supabase.co/storage/v1/object/public/bimta/progress/20251015060207.pdf', fileName: 'TES')
       },
     );
   }

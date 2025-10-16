@@ -16,13 +16,13 @@ class ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgColors = [
       const Color(0xFFE7EBFF),
-      const Color(0xFFE6F5EC),
+      const Color(0xFFF5D2D5),
       const Color(0xFFFFF1E6),
     ];
 
     final textColors = [
       const Color(0xFF5A6ACF),
-      const Color(0xFF2E9E56),
+      const Color(0xFFB00C20),
       const Color(0xFFE67E22),
     ];
 

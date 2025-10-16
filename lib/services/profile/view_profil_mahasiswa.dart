@@ -13,8 +13,21 @@ class ProfileMahasiswaService {
       final response = await _httpClient.get(url);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return ProfileMahasiswa.fromJson(data);
+        final responseData = jsonDecode(response.body);
+
+        // Cek apakah response berupa List atau Object
+        if (responseData is List) {
+          // Jika List, ambil elemen pertama
+          if (responseData.isEmpty) {
+            throw Exception('Data mahasiswa tidak ditemukan');
+          }
+          return ProfileMahasiswa.fromJson(responseData[0]);
+        } else if (responseData is Map<String, dynamic>) {
+          // Jika Object langsung
+          return ProfileMahasiswa.fromJson(responseData);
+        } else {
+          throw Exception('Format response tidak valid');
+        }
       } else if (response.statusCode == 404) {
         throw Exception('Mahasiswa tidak ditemukan');
       } else {

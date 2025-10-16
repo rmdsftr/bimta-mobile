@@ -32,6 +32,11 @@ class AuthenticatedHttpClient {
     return await http.put(url, headers: headers, body: body);
   }
 
+  Future<http.Response> patch(Uri url, {Object? body}) async {
+    final headers = await _getHeaders();
+    return await http.patch(url, headers: headers, body: body);
+  }
+
   Future<http.Response> delete(Uri url) async {
     final headers = await _getHeaders();
     return await http.delete(url, headers: headers);

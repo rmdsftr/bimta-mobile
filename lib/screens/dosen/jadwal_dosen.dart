@@ -1,16 +1,11 @@
 import 'package:bimta/layouts/custom_topbar.dart';
+import 'package:bimta/models/add_jadwal_dosen.dart';
+import 'package:bimta/services/jadwal/add_jadwal_dosen.dart';
 import 'package:bimta/widgets/background.dart';
+import 'package:bimta/widgets/custom_alert.dart';
 import 'package:bimta/widgets/input_datetime.dart';
-import 'package:bimta/widgets/logo_corner.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-class Event {
-  final String title;
-  final String time;
-
-  Event({required this.title, required this.time});
-}
 
 class JadwalDosenScreen extends StatefulWidget {
   const JadwalDosenScreen({Key? key}) : super(key: key);
@@ -21,106 +16,75 @@ class JadwalDosenScreen extends StatefulWidget {
 
 class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
   DateTime selectedDate = DateTime.now();
-  Map<DateTime, List<Event>> events = {
-    DateTime(2025, 1, 2): [
-      Event(title: 'Seminar Hasil', time: 'Jam 10:00-12:00'),
-      Event(title: 'Kelas Metopen', time: 'Jam 16:00-17:40'),
-    ],
-  };
+  final KegiatanService _kegiatanService = KegiatanService();
+  List<Kegiatan> selectedDateEvents = [];
+  bool isLoading = false;
 
   List<String> dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKegiatanByDate(selectedDate);
+  }
+
+  Future<void> _loadKegiatanByDate(DateTime date) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final kegiatan = await _kegiatanService.getKegiatanByDate(date);
+
+      // Filter kegiatan yang benar-benar untuk tanggal yang dipilih
+      final filteredKegiatan = kegiatan.where((k) {
+        return k.tanggal.year == date.year &&
+            k.tanggal.month == date.month &&
+            k.tanggal.day == date.day;
+      }).toList();
+
+      setState(() {
+        selectedDateEvents = filteredKegiatan;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        CustomDialog.showError(
+          context: context,
+          message: 'Terjadi kesalahan saat memuat data kegiatan',
+        );
+      }
+    }
+  }
 
   void _selectDate(DateTime date) {
     setState(() {
       selectedDate = date;
     });
+    _loadKegiatanByDate(date);
   }
 
-  void _showAddEventDialog() {
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController timeController = TextEditingController();
-
+  void _showDeleteConfirmation(Kegiatan kegiatan) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
         ),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 15),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Nama Kegiatan",
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                maxLines: 5,
-                minLines: 3,
-                decoration: InputDecoration(
-                  hintText: "Deskripsikan kegiatan Anda",
-                  hintStyle: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 13,
-                      color: Colors.black38
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Colors.black12,
-                        width: 1
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF74ADDF),
-                      width: 1.5,
-                    ),
-                  ),
-                  disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              TimeInputWidget(
-                label: "Mulai",
-                hintText: "Pilih waktu acara",
-                initialTime: TimeOfDay(hour: 9, minute: 0),
-                onTimeSelected: (time) {
-                  // setState(() {
-                  //   selectedTime = time;
-                  // });
-                  // print('Time selected: $time'); // Debug
-                },
-              ),
-              SizedBox(height: 16),
-              TimeInputWidget(
-                label: "Selesai",
-                hintText: "Pilih waktu acara",
-                initialTime: TimeOfDay(hour: 9, minute: 0),
-                onTimeSelected: (time) {
-                  // setState(() {
-                  //   selectedTime = time;
-                  // });
-                  // print('Time selected: $time'); // Debug
-                },
-              ),
-            ],
+        title: Text(
+          'Hapus Kegiatan',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus kegiatan "${kegiatan.kegiatan}"?',
+          style: TextStyle(
+            fontFamily: 'Poppins',
           ),
         ),
         actions: [
@@ -129,52 +93,231 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
             child: Text(
               'Batal',
               style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.grey,
               ),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Colors.red,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            onPressed: () {
-              if (titleController.text.isNotEmpty &&
-                  timeController.text.isNotEmpty) {
-                setState(() {
-                  final normalizedDate = DateTime(
-                    selectedDate.year,
-                    selectedDate.month,
-                    selectedDate.day,
-                  );
-
-                  if (events[normalizedDate] == null) {
-                    events[normalizedDate] = [];
-                  }
-                  events[normalizedDate]!.add(
-                    Event(
-                      title: titleController.text,
-                      time: timeController.text,
-                    ),
-                  );
-                });
-                Navigator.pop(context);
-              }
+            onPressed: () async {
+              Navigator.pop(context); // Tutup dialog konfirmasi
+              await _deleteKegiatan(kegiatan.jadwalDosenId);
             },
             child: Text(
-              'Simpan',
+              'Hapus',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 color: Colors.white,
-                fontWeight: FontWeight.w600
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _deleteKegiatan(String jadwalDosenId) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      await _kegiatanService.deleteKegiatan(jadwalDosenId);
+
+      // Reload data setelah berhasil dihapus
+      await _loadKegiatanByDate(selectedDate);
+
+      if (mounted) {
+        CustomDialog.showSuccess(
+          context: context,
+          message: 'Kegiatan berhasil dihapus',
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        );
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      if (mounted) {
+        CustomDialog.showError(
+          context: context,
+          message: 'Gagal menghapus kegiatan. Silakan coba lagi',
+        );
+      }
+    }
+  }
+
+  void _showAddEventDialog() {
+    final TextEditingController kegiatanController = TextEditingController();
+    // Inisialisasi dengan nilai default, bukan null
+    TimeOfDay? jamMulai = TimeOfDay(hour: 9, minute: 0);
+    TimeOfDay? jamSelesai = TimeOfDay(hour: 10, minute: 0);
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            content: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 15),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Nama Kegiatan",
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: kegiatanController,
+                      maxLines: 5,
+                      minLines: 3,
+                      decoration: InputDecoration(
+                        hintText: "Deskripsikan kegiatan Anda",
+                        hintStyle: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.black38),
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.black12, width: 1),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF74ADDF),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    TimeInputWidget(
+                      label: "Mulai",
+                      hintText: "Pilih waktu mulai",
+                      initialTime: TimeOfDay(hour: 9, minute: 0),
+                      onTimeSelected: (time) {
+                        setDialogState(() {
+                          jamMulai = time;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    TimeInputWidget(
+                      label: "Selesai",
+                      hintText: "Pilih waktu selesai",
+                      initialTime: TimeOfDay(hour: 10, minute: 0),
+                      onTimeSelected: (time) {
+                        setDialogState(() {
+                          jamSelesai = time;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Batal',
+                  style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w600,
+                      color: Colors.deepPurple),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onPressed: () async {
+                  if (kegiatanController.text.isEmpty) {
+                    CustomDialog.showWarning(
+                      context: context,
+                      message: 'Nama kegiatan tidak boleh kosong',
+                    );
+                    return;
+                  }
+
+                  if (jamMulai == null || jamSelesai == null) {
+                    CustomDialog.showWarning(
+                      context: context,
+                      message: 'Silakan pilih waktu mulai dan selesai',
+                    );
+                    return;
+                  }
+
+                  try {
+                    final request = AddKegiatanRequest(
+                      kegiatan: kegiatanController.text,
+                      tanggal: DateFormat('yyyy-MM-dd').format(selectedDate),
+                      jamMulai: '${jamMulai!.hour.toString().padLeft(2, '0')}:${jamMulai!.minute.toString().padLeft(2, '0')}',
+                      jamSelesai: '${jamSelesai!.hour.toString().padLeft(2, '0')}:${jamSelesai!.minute.toString().padLeft(2, '0')}',
+                    );
+
+                    await _kegiatanService.addKegiatan(request);
+
+                    // Tutup dialog form terlebih dahulu
+                    Navigator.pop(context);
+
+                    // Reload data
+                    await _loadKegiatanByDate(selectedDate);
+
+                    // Tampilkan success dialog
+                    CustomDialog.showSuccess(
+                      context: context,
+                      message: 'Kegiatan berhasil ditambahkan ke jadwal',
+                      onPressed: () {
+                        // Hanya tutup dialog success
+                        Navigator.pop(context);
+                      },
+                    );
+                  } catch (e) {
+                    CustomDialog.showError(
+                      context: context,
+                      message: 'Gagal menambahkan kegiatan. Silakan coba lagi',
+                    );
+                  }
+                },
+                child: Text(
+                  'Simpan',
+                  style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -201,13 +344,6 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
     final daysInMonth = _getDaysInMonth(selectedDate);
     final startingWeekday = _getStartingWeekday(selectedDate);
 
-    final normalizedSelectedDate = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-    );
-    final selectedEvents = events[normalizedSelectedDate] ?? [];
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -221,7 +357,7 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
               leading: Row(
                 children: [
                   GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Navigator.pop(context);
                     },
                     child: Icon(
@@ -331,7 +467,6 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                                 .toList(),
                           ),
                           SizedBox(height: 12),
-
                           Expanded(
                             flex: 1,
                             child: GridView.builder(
@@ -383,9 +518,7 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                               },
                             ),
                           ),
-
                           SizedBox(height: 20),
-
                           Text(
                             'Upcoming events',
                             style: TextStyle(
@@ -395,10 +528,13 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                             ),
                           ),
                           SizedBox(height: 12),
-
                           Expanded(
                             flex: 1,
-                            child: selectedEvents.isEmpty
+                            child: isLoading
+                                ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                                : selectedDateEvents.isEmpty
                                 ? Center(
                               child: Text(
                                 'Tidak ada kegiatan',
@@ -409,9 +545,9 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                               ),
                             )
                                 : ListView.builder(
-                              itemCount: selectedEvents.length,
+                              itemCount: selectedDateEvents.length,
                               itemBuilder: (context, index) {
-                                final event = selectedEvents[index];
+                                final kegiatan = selectedDateEvents[index];
                                 return Container(
                                   margin: EdgeInsets.only(bottom: 12),
                                   padding: EdgeInsets.all(12),
@@ -423,26 +559,42 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                                       width: 1,
                                     ),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        event.title,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontFamily: 'Poppins',
-                                          fontWeight: FontWeight.w600,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              kegiatan.kegiatan,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontFamily: 'Poppins',
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              kegiatan.timeRange,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontFamily: 'Poppins',
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        event.time,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontFamily: 'Poppins',
-                                          color: Colors.grey[600],
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.red,
+                                          size: 22,
                                         ),
+                                        onPressed: () => _showDeleteConfirmation(kegiatan),
+                                        padding: EdgeInsets.all(8),
+                                        constraints: BoxConstraints(),
                                       ),
                                     ],
                                   ),
@@ -450,9 +602,7 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                               },
                             ),
                           ),
-
                           SizedBox(height: 12),
-
                           SizedBox(
                             width: double.infinity,
                             child: GestureDetector(
@@ -475,7 +625,8 @@ class _JadwalDosenScreenState extends State<JadwalDosenScreen> {
                                   ],
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  padding:
+                                  const EdgeInsets.symmetric(vertical: 12),
                                   child: Center(
                                     child: Text(
                                       'Tambah Kegiatan',

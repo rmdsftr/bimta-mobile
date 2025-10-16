@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class ReferensiTAScreen extends StatefulWidget {
   const ReferensiTAScreen({super.key});
@@ -119,17 +120,25 @@ class _ReferensiState extends State<ReferensiTAScreen> {
     try {
       // Request storage permission
       var status = await Permission.storage.request();
+      print('Permission status: $status');
+
       if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Izin penyimpanan diperlukan untuk download',
-              style: TextStyle(fontFamily: 'Poppins'),
+        // Jika masih belum grant, coba request lagi
+        status = await Permission.storage.request();
+
+        if (!status.isGranted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Izin penyimpanan diperlukan. Buka Settings > Apps > BIMTA > Permissions > Storage',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
+              ),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 5),
             ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
+          );
+          return;
+        }
       }
 
       // Show loading dialog
@@ -154,37 +163,46 @@ class _ReferensiState extends State<ReferensiTAScreen> {
       final response = await http.get(Uri.parse(referensi.docUrl!));
 
       if (response.statusCode == 200) {
-        // Get Downloads directory
-        Directory? directory;
-        if (Platform.isAndroid) {
-          directory = Directory('/storage/emulated/0/Download');
-          if (!await directory.exists()) {
-            directory = await getExternalStorageDirectory();
-          }
-        } else {
-          directory = await getApplicationDocumentsDirectory();
+        // Ambil external storage directory
+        Directory? directory = await getExternalStorageDirectory();
+
+        if (directory == null) {
+          throw Exception('Tidak bisa akses storage');
+        }
+
+        // Path ke Downloads folder
+        final downloadsPath = Directory('/storage/emulated/0/Downloads');
+
+        if (!await downloadsPath.exists()) {
+          await downloadsPath.create(recursive: true);
         }
 
         // Create file name
         final fileName = '${referensi.judul}_${referensi.tahun}.pdf';
-        final filePath = '${directory!.path}/$fileName';
+        final filePath = '${downloadsPath.path}/$fileName';
         final file = File(filePath);
 
         // Write file
         await file.writeAsBytes(response.bodyBytes);
 
+        // Verify file exists
+        bool fileExists = await file.exists();
+        print('File path: $filePath');
+        print('File exists: $fileExists');
+        print('File size: ${await file.length()} bytes');
+
         // Close loading dialog
         Navigator.pop(context);
 
-        // Show success message
+        // Show success message dengan full path
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'File berhasil diunduh ke: ${directory.path}',
-              style: TextStyle(fontFamily: 'Poppins'),
+              'File tersimpan di:\n$filePath',
+              style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
             ),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 5),
             action: SnackBarAction(
               label: 'OK',
               textColor: Colors.white,

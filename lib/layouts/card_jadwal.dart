@@ -10,6 +10,7 @@ class CardJadwal extends StatelessWidget {
   final String lokasi;
   final String pesan;
   final String status;
+  final String? pesanDosen;
 
   const CardJadwal({
     super.key,
@@ -19,6 +20,7 @@ class CardJadwal extends StatelessWidget {
     required this.lokasi,
     required this.pesan,
     required this.status,
+    this.pesanDosen
   });
 
   @override
@@ -127,7 +129,59 @@ class CardJadwal extends StatelessWidget {
             style: TextStyle(
                 fontSize: 13
             ),
-          )
+          ),
+          SizedBox(height: 10),
+          if(pesanDosen != null && pesanDosen!.isNotEmpty)...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.grey.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.topic_rounded,
+                        size: 16,
+                        color: Colors.grey[700],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Pesan dosen",
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    pesanDosen ?? "",
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      color: Colors.grey[700],
+                      height: 1.5,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ]
         ],
       ),
     );

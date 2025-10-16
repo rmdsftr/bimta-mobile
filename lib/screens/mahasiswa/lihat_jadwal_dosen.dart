@@ -1,14 +1,9 @@
 import 'package:bimta/layouts/custom_topbar.dart';
+import 'package:bimta/models/lihat_jadwal_dosen.dart';
+import 'package:bimta/services/jadwal/lihat_jadwal_dosen.dart';
 import 'package:bimta/widgets/background.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-class Event {
-  final String title;
-  final String time;
-
-  Event({required this.title, required this.time});
-}
 
 class LihatJadwalDosenScreen extends StatefulWidget {
   const LihatJadwalDosenScreen({Key? key}) : super(key: key);
@@ -19,14 +14,52 @@ class LihatJadwalDosenScreen extends StatefulWidget {
 
 class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
   DateTime selectedDate = DateTime.now();
-  Map<DateTime, List<Event>> events = {
-    DateTime(2025, 1, 2): [
-      Event(title: 'Seminar Hasil', time: 'Jam 10:00-12:00'),
-      Event(title: 'Kelas Metopen', time: 'Jam 16:00-17:40'),
-    ],
-  };
+  Map<DateTime, List<KegiatanModel>> events = {};
+  bool isLoading = false;
+  String? errorMessage;
+
+  final KegiatanService _kegiatanService = KegiatanService();
 
   List<String> dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKegiatanForMonth();
+  }
+
+  Future<void> _loadKegiatanForMonth() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final kegiatanList = await _kegiatanService.getKegiatanByBulan(
+        year: selectedDate.year,
+        month: selectedDate.month,
+      );
+
+      setState(() {
+        events = _kegiatanService.convertToCalendarMap(kegiatanList);
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString().replaceAll('Exception: ', '');
+        isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage ?? 'Terjadi kesalahan'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   void _selectDate(DateTime date) {
     setState(() {
@@ -34,7 +67,16 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
     });
   }
 
-
+  void _changeMonth(int monthDelta) {
+    setState(() {
+      selectedDate = DateTime(
+        selectedDate.year,
+        selectedDate.month + monthDelta,
+        1,
+      );
+    });
+    _loadKegiatanForMonth();
+  }
 
   List<DateTime> _getDaysInMonth(DateTime date) {
     final firstDay = DateTime(date.year, date.month, 1);
@@ -51,6 +93,11 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
   int _getStartingWeekday(DateTime date) {
     final firstDay = DateTime(date.year, date.month, 1);
     return firstDay.weekday % 7;
+  }
+
+  bool _hasEvents(DateTime date) {
+    final normalizedDate = DateTime(date.year, date.month, date.day);
+    return events.containsKey(normalizedDate) && events[normalizedDate]!.isNotEmpty;
   }
 
   @override
@@ -137,30 +184,14 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.chevron_left, size: 24),
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedDate = DateTime(
-                                          selectedDate.year,
-                                          selectedDate.month - 1,
-                                          1,
-                                        );
-                                      });
-                                    },
+                                    onPressed: isLoading ? null : () => _changeMonth(-1),
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
                                   ),
                                   SizedBox(width: 8),
                                   IconButton(
                                     icon: Icon(Icons.chevron_right, size: 24),
-                                    onPressed: () {
-                                      setState(() {
-                                        selectedDate = DateTime(
-                                          selectedDate.year,
-                                          selectedDate.month + 1,
-                                          1,
-                                        );
-                                      });
-                                    },
+                                    onPressed: isLoading ? null : () => _changeMonth(1),
                                     padding: EdgeInsets.zero,
                                     constraints: BoxConstraints(),
                                   ),
@@ -190,11 +221,14 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                           SizedBox(height: 12),
                           Expanded(
                             flex: 1,
-                            child: GridView.builder(
+                            child: isLoading
+                                ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                                : GridView.builder(
                               shrinkWrap: true,
                               physics: NeverScrollableScrollPhysics(),
-                              gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 7,
                                 childAspectRatio: 1,
                               ),
@@ -209,6 +243,7 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                                 final isSelected = date.day == selectedDate.day &&
                                     date.month == selectedDate.month &&
                                     date.year == selectedDate.year;
+                                final hasEvents = _hasEvents(date);
 
                                 return GestureDetector(
                                   onTap: () => _selectDate(date),
@@ -220,19 +255,39 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                                           : Colors.transparent,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        '${date.day.toString().padLeft(2, '0')}',
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
-                                          fontWeight: isSelected
-                                              ? FontWeight.bold
-                                              : FontWeight.normal,
-                                          fontFamily: 'Poppins',
+                                    child: Stack(
+                                      children: [
+                                        Center(
+                                          child: Text(
+                                            '${date.day.toString().padLeft(2, '0')}',
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                              fontFamily: 'Poppins',
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        if (hasEvents && !isSelected)
+                                          Positioned(
+                                            bottom: 4,
+                                            left: 0,
+                                            right: 0,
+                                            child: Center(
+                                              child: Container(
+                                                width: 4,
+                                                height: 4,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 );
@@ -264,25 +319,23 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                                 : ListView.builder(
                               itemCount: selectedEvents.length,
                               itemBuilder: (context, index) {
-                                final event = selectedEvents[index];
+                                final kegiatan = selectedEvents[index];
                                 return Container(
                                   margin: EdgeInsets.only(bottom: 12),
                                   padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withOpacity(0.7),
-                                    borderRadius:
-                                    BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
                                       color: Colors.blue.withOpacity(0.2),
                                       width: 1,
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        event.title,
+                                        kegiatan.namaKegiatan,
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontFamily: 'Poppins',
@@ -291,13 +344,27 @@ class _LihatJadwalDosenScreenState extends State<LihatJadwalDosenScreen> {
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        event.time,
+                                        kegiatan.formattedTime,
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontFamily: 'Poppins',
                                           color: Colors.grey[600],
                                         ),
                                       ),
+                                      if (kegiatan.deskripsi != null &&
+                                          kegiatan.deskripsi!.isNotEmpty) ...[
+                                        SizedBox(height: 4),
+                                        Text(
+                                          kegiatan.deskripsi!,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: 'Poppins',
+                                            color: Colors.grey[500],
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 );

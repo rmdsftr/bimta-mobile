@@ -35,9 +35,9 @@ class CardBimbinganOnline extends StatelessWidget {
           return const Color(0xFF5B6AE3);
         case 'read':
           return Colors.grey;
-        case 'revisi':
+        case 'need_revision':
           return const Color(0xFFFF9800);
-        case 'approved':
+        case 'done':
           return const Color(0xFF4CAF50);
         default:
           return Colors.grey;
@@ -50,9 +50,9 @@ class CardBimbinganOnline extends StatelessWidget {
           return 'Unread';
         case 'read':
           return 'Read';
-        case 'revisi':
+        case 'need_revision':
           return 'Revisi';
-        case 'approved':
+        case 'done':
           return 'Approved';
         default:
           return 'Unknown';
